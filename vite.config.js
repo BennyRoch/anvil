@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'IronLog',
-        short_name: 'IronLog',
-        description: 'Track your lifts, follow programs, get AI-generated splits.',
+        name: 'Anvil',
+        short_name: 'Anvil',
+        description: 'Forge your strength. Track lifts, follow programs, get AI-generated splits.',
         theme_color: '#ff6b35',
         background_color: '#0a0a0f',
         display: 'standalone',

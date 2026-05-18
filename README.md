@@ -1,4 +1,4 @@
-# IronLog
+# Anvil
 
 A workout tracker with AI-generated programs. Built with React + Vite + PWA.
 
@@ -51,7 +51,7 @@ This creates a `dist/` folder with everything optimized and ready to deploy.
 2. Push this folder to a GitHub repository
 3. On Vercel, click "Add New Project" and import your GitHub repo
 4. Vercel auto-detects Vite — just click "Deploy"
-5. You'll get a URL like `ironlog-xyz.vercel.app`
+5. You'll get a URL like `anvil-xyz.vercel.app`
 
 Every push to GitHub auto-deploys updates.
 
@@ -63,7 +63,7 @@ Once deployed:
 1. Open your Vercel URL in Safari
 2. Tap the Share button
 3. Scroll down and tap "Add to Home Screen"
-4. Tap "Add" — IronLog now appears as an app icon
+4. Tap "Add" — Anvil now appears as an app icon
 
 **Android (Chrome):**
 1. Open your Vercel URL in Chrome
@@ -73,7 +73,7 @@ Once deployed:
 ## Project structure
 
 ```
-ironlog/
+anvil/
 ├── public/              Static assets (icons, favicon)
 ├── src/
 │   ├── App.jsx          Main application (all logic + UI)

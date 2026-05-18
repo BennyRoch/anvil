@@ -842,8 +842,8 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
   // ─── ONBOARDING ──────────────────────────────────────────────────────────────
   if (onboarding) return (
     <div style={{...S.app,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:28,minHeight:"100vh"}}>
-      <div style={{fontSize:36,fontWeight:800,letterSpacing:4,textTransform:"uppercase",color:"#ff6b35",marginBottom:6}}>⚡ IronLog</div>
-      <div style={{color:"#444",fontSize:12,letterSpacing:2,marginBottom:40}}>BUILD YOUR BODY. TRACK YOUR PROGRESS.</div>
+      <div style={{fontSize:36,fontWeight:800,letterSpacing:4,textTransform:"uppercase",color:"#ff6b35",marginBottom:6}}>🔨 Anvil</div>
+      <div style={{color:"#444",fontSize:12,letterSpacing:2,marginBottom:40}}>FORGE YOUR STRENGTH.</div>
       <div style={{width:"100%",maxWidth:360}}>
         <span style={{...S.label,marginBottom:10}}>What's your name? (optional)</span>
         <input style={{...S.input2,marginBottom:24}} placeholder="e.g. Roger" value={draft.name} onChange={e=>setDraft(d=>({...d,name:e.target.value}))}/>
@@ -967,7 +967,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
     <div style={S.app}>
       <div style={S.header}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <span style={S.logo}>⚡ IronLog</span>
+          <span style={S.logo}>🔨 Anvil</span>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
             {profile?.experience && <span style={S.tag(myLevel==="Beginner"?"Full":myLevel==="Intermediate"?"Upper":"Chest")}>{profile.experience}</span>}
             <button style={{background:"none",border:"none",color:"#444",fontSize:16,cursor:"pointer"}} onClick={()=>{setDraft(profile||{});setOnboarding(true);}}>⚙</button>
