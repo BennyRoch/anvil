@@ -92,10 +92,20 @@ anvil/
 
 ## Important note on the AI Coach
 
-The current AI Coach calls the Anthropic API directly from the browser. This works fine for personal/demo use but exposes your API key in production. Before launching to real users, you should:
+The AI Coach calls Anthropic's API through a secure serverless function at `/api/generate-plan`. **You need to set your API key in Vercel** for it to work:
 
-1. Add a Vercel serverless function (`api/generate-plan.js`) that proxies the API call
-2. Store your Anthropic API key as a Vercel environment variable
-3. Have the React app call your serverless function instead
+1. Get an API key at [console.anthropic.com](https://console.anthropic.com) → API Keys
+2. In your Vercel project → Settings → Environment Variables
+3. Add a new variable:
+   - **Name:** `ANTHROPIC_API_KEY`
+   - **Value:** your API key (starts with `sk-ant-...`)
+   - **Environment:** Production, Preview, Development (check all)
+4. Click Save
+5. Redeploy: Vercel project → Deployments → click ⋯ on latest → Redeploy
+
+**Rate limiting:** the serverless function caps each user's IP at 10 plan generations per day. Adjust in `api/generate-plan.js` if needed.
+
+**Cost estimate:** Claude Sonnet 4 costs ~$0.003-$0.015 per plan generation. At 10 plans/day per user, your absolute worst-case is $0.15/user/day = $4.50/user/month. In practice, most users generate 1-2 plans and stop — closer to $0.05/user/month.
 
 Happy lifting.
+

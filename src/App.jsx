@@ -8,118 +8,156 @@ const EXERCISES = {
     "Floor Press","Spoto Press","Larsen Press","Paused Bench Press","Pin Press","Board Press",
     "Push-Up","Wide Push-Up","Diamond Push-Up","Decline Push-Up","Incline Push-Up","Plyometric Push-Up",
     "Clap Push-Up","Archer Push-Up","One-Arm Push-Up","Handstand Push-Up","Pike Push-Up","Ring Push-Up",
-    "Deficit Push-Up","T-Push-Up","Spider-Man Push-Up","Hindu Push-Up","Cable Chest Fly","Low-to-High Cable Fly",
-    "High-to-Low Cable Fly","Dumbbell Fly","Incline Dumbbell Fly","Decline Dumbbell Fly","Pec Deck Machine",
-    "Cable Crossover","Single-Arm Cable Crossover","Chest Dip","Weighted Chest Dip","Ring Dip","Bench Dip",
-    "Svend Press","Plate Press","Machine Chest Press","Smith Machine Bench Press","Hammer Strength Press",
-    "Landmine Press","Landmine Chest Press","Dumbbell Pullover","Barbell Pullover","Cable Pullover",
-    "Guillotine Press","Larsen Floor Press","Dumbbell Squeeze Press",
+    "Deficit Push-Up","T-Push-Up","Spider-Man Push-Up","Hindu Push-Up","Banded Push-Up","Weighted Push-Up",
+    "Cable Chest Fly","Low-to-High Cable Fly","High-to-Low Cable Fly","Mid Cable Fly","Single-Arm Cable Fly",
+    "Incline Cable Fly","Decline Cable Fly","Cable Bench Press","Cable Crossover","Single-Arm Cable Crossover",
+    "Standing Cable Press","Kneeling Cable Press","Dumbbell Fly","Incline Dumbbell Fly","Decline Dumbbell Fly",
+    "Neutral-Grip Dumbbell Press","Neutral-Grip Incline DB Press","Squeeze Press","Dumbbell Squeeze Press",
+    "Pec Deck Machine","Reverse Pec Deck (Chest)","Machine Chest Press","Hammer Strength Chest Press",
+    "Hammer Strength Incline Press","Hammer Strength Decline Press","Iso-Lateral Chest Press",
+    "Smith Machine Bench Press","Smith Machine Incline Press","Smith Machine Decline Press",
+    "Smith Machine Close-Grip Press","Chest Dip","Weighted Chest Dip","Ring Dip","Bench Dip","Machine Dip",
+    "Svend Press","Plate Press","Plate Squeeze Press","Landmine Press","Landmine Chest Press",
+    "Landmine Single-Arm Press","Dumbbell Pullover","Barbell Pullover","Cable Pullover","Machine Pullover",
+    "Guillotine Press","Larsen Floor Press","Banded Bench Press","Chain Bench Press","Slingshot Bench Press",
   ],
   Back: [
     "Conventional Deadlift","Deadlift","Sumo Deadlift","Romanian Deadlift","Stiff-Leg Deadlift","Trap Bar Deadlift",
     "Snatch-Grip Deadlift","Deficit Deadlift","Block Pull","Rack Pull","Pause Deadlift","Single-Leg Deadlift",
-    "Barbell Row","Pendlay Row","Yates Row","Dumbbell Row","Chest-Supported Dumbbell Row","Seal Row",
-    "Meadows Row","T-Bar Row","Chest-Supported T-Bar Row","Inverted Row","Single-Arm Dumbbell Row",
-    "Seated Cable Row","Wide-Grip Cable Row","Single-Arm Cable Row","Standing Cable Row","Kroc Row",
+    "Banded Deadlift","Chain Deadlift","Paused Rack Pull","Hex Bar Deadlift","Snatch-Grip Block Pull",
+    "Barbell Row","Pendlay Row","Yates Row","Underhand Barbell Row","Dumbbell Row","Chest-Supported Dumbbell Row",
+    "Seal Row","Meadows Row","T-Bar Row","Chest-Supported T-Bar Row","Landmine Row","Landmine T-Bar Row",
+    "Inverted Row","Single-Arm Dumbbell Row","Single-Arm Landmine Row","Kroc Row","Helms Row","Banded Row",
+    "Seated Cable Row","Wide-Grip Cable Row","Close-Grip Cable Row","Single-Arm Cable Row","Standing Cable Row",
+    "Bent-Over Cable Row","Low Cable Row","High Cable Row","Chest-Supported Cable Row","Smith Machine Row",
+    "Smith Machine Inverted Row","Hammer Strength Row","Iso-Lateral Row","Plate-Loaded Row","Machine Row",
     "Lat Pulldown","Wide-Grip Lat Pulldown","Close-Grip Lat Pulldown","Reverse-Grip Lat Pulldown",
-    "Single-Arm Lat Pulldown","Neutral-Grip Pulldown","Straight-Arm Pulldown","Behind-the-Neck Pulldown",
+    "Single-Arm Lat Pulldown","Neutral-Grip Pulldown","Behind-the-Neck Pulldown","Kneeling Lat Pulldown",
+    "Straight-Arm Pulldown","V-Bar Pulldown","Banded Pulldown","Pull-Down Machine",
     "Pull-Up","Wide-Grip Pull-Up","Close-Grip Pull-Up","Chin-Up","Neutral-Grip Pull-Up","Weighted Pull-Up",
-    "Commando Pull-Up","Archer Pull-Up","L-Sit Pull-Up","Muscle-Up","Kipping Pull-Up","Towel Pull-Up",
-    "Face Pull","Rope Face Pull","Reverse Pec Deck","Rear Delt Row","Good Morning","Seated Good Morning",
-    "Hyperextension","Reverse Hyperextension","45-Degree Back Extension","Jefferson Curl","Cat Cow",
-    "Bird Dog","Superman","Renegade Row","Inverted Row","TRX Row","Pull-Down Machine","Iso-Lateral Row",
+    "Banded Pull-Up","Commando Pull-Up","Archer Pull-Up","L-Sit Pull-Up","Muscle-Up","Kipping Pull-Up",
+    "Towel Pull-Up","Sternum Pull-Up","Assisted Pull-Up Machine","Negative Pull-Up",
+    "Face Pull","Rope Face Pull","Cable Pull-Apart","Reverse Pec Deck","Rear Delt Row","Bent-Over Reverse Fly",
+    "Good Morning","Seated Good Morning","Banded Good Morning","Hyperextension","Reverse Hyperextension",
+    "45-Degree Back Extension","Weighted Back Extension","Jefferson Curl","Cat Cow","Bird Dog","Superman",
+    "Renegade Row","TRX Row","Pendlay Row Variations","Smith Machine Bent-Over Row",
   ],
   Shoulders: [
     "Barbell Overhead Press","Standing Military Press","Seated Barbell Press","Push Press","Push Jerk",
     "Behind-the-Neck Press","Z Press","Dumbbell Shoulder Press","Seated Dumbbell Press","Arnold Press",
     "Single-Arm Dumbbell Press","Neutral-Grip DB Press","Landmine Press","Single-Arm Landmine Press",
     "Half-Kneeling Landmine Press","Cuban Press","Bradford Press","Pin Press","Machine Shoulder Press",
-    "Smith Machine Press","Bottoms-Up Kettlebell Press","Kettlebell Strict Press","Bus Driver",
-    "Lateral Raise","Dumbbell Lateral Raise","Cable Lateral Raise","Machine Lateral Raise","Leaning Lateral Raise",
-    "Lying Lateral Raise","Y-Raise","L-Raise","Front Raise","Plate Front Raise","Cable Front Raise",
-    "Alternating Front Raise","Rear Delt Fly","Reverse Pec Deck","Bent-Over Reverse Fly","Cable Reverse Fly",
-    "Face Pull","Rope Pull-to-Throat","Upright Row","Wide-Grip Upright Row","Cable Upright Row",
-    "Barbell Shrug","Dumbbell Shrug","Behind-the-Back Shrug","Trap Bar Shrug","Snatch-Grip High Pull",
-    "Power Shrug","Overhead Carry","Bottoms-Up Press","Pike Push-Up","Handstand Hold","Handstand Walk",
-    "Wall Walk","Scapular Pull-Up","Band Pull-Apart","Cable Y-Raise","Around-the-World",
+    "Hammer Strength Shoulder Press","Iso-Lateral Shoulder Press","Smith Machine Shoulder Press",
+    "Smith Machine Behind-the-Neck Press","Smith Machine Seated Press","Bottoms-Up Kettlebell Press",
+    "Kettlebell Strict Press","Kettlebell Bottoms-Up Press","Single-Arm Kettlebell Press","Bus Driver",
+    "Pike Push-Up","Handstand Push-Up","Wall Walk","Handstand Hold","Handstand Walk",
+    "Lateral Raise","Dumbbell Lateral Raise","Cable Lateral Raise","Single-Arm Cable Lateral Raise",
+    "Machine Lateral Raise","Leaning Lateral Raise","Lying Lateral Raise","Y-Raise","L-Raise",
+    "Egyptian Lateral Raise","Bent-Over Lateral Raise","Front Raise","Plate Front Raise","Cable Front Raise",
+    "Single-Arm Cable Front Raise","Alternating Front Raise","Barbell Front Raise","Rear Delt Fly",
+    "Reverse Pec Deck","Bent-Over Reverse Fly","Cable Reverse Fly","Single-Arm Cable Reverse Fly",
+    "Rope Face Pull","Cable Face Pull","Face Pull","Rope Pull-to-Throat","Upright Row","Wide-Grip Upright Row",
+    "Cable Upright Row","Dumbbell Upright Row","Smith Machine Upright Row","Barbell Shrug","Dumbbell Shrug",
+    "Behind-the-Back Shrug","Trap Bar Shrug","Smith Machine Shrug","Cable Shrug","Snatch-Grip High Pull",
+    "Power Shrug","Overhead Carry","Scapular Pull-Up","Band Pull-Apart","Cable Y-Raise","Around-the-World",
   ],
   Biceps: [
     "Barbell Curl","EZ-Bar Curl","Wide-Grip Barbell Curl","Close-Grip Barbell Curl","Reverse Curl",
-    "EZ-Bar Reverse Curl","Drag Curl","Cheat Curl","Dumbbell Curl","Alternating Dumbbell Curl",
-    "Seated Dumbbell Curl","Hammer Curl","Cross-Body Hammer Curl","Rope Hammer Curl","Incline Dumbbell Curl",
-    "Spider Curl","Concentration Curl","Preacher Curl","Dumbbell Preacher Curl","Machine Preacher Curl",
+    "EZ-Bar Reverse Curl","Drag Curl","Cheat Curl","Strict Curl","Standing Barbell Curl","Seated Barbell Curl",
+    "Dumbbell Curl","Alternating Dumbbell Curl","Seated Dumbbell Curl","Standing Dumbbell Curl",
+    "Hammer Curl","Cross-Body Hammer Curl","Rope Hammer Curl","Seated Hammer Curl","Incline Hammer Curl",
+    "Incline Dumbbell Curl","Spider Curl","Concentration Curl","Preacher Curl","Dumbbell Preacher Curl",
+    "Single-Arm Preacher Curl","Machine Preacher Curl","Smith Machine Drag Curl","Reverse Preacher Curl",
     "Cable Curl","Rope Cable Curl","High Cable Curl","Bayesian Cable Curl","Single-Arm Cable Curl",
-    "Overhead Cable Curl","Zottman Curl","21s","Machine Curl","Reverse Preacher Curl","Pinwheel Curl",
+    "Overhead Cable Curl","Lying Cable Curl","Behind-the-Back Cable Curl","Standing Cable Curl",
+    "Wide-Grip Cable Curl","Close-Grip Cable Curl","Cross-Body Cable Curl","EZ-Bar Cable Curl",
+    "Zottman Curl","21s","Machine Curl","Iso-Lateral Curl","Hammer Curl Machine","Pinwheel Curl",
     "Waiter Curl","Bodyweight Curl (Inverted)","TRX Curl","Resistance Band Curl","Wrist Curl",
-    "Reverse Wrist Curl","Behind-the-Back Cable Curl","Standing Cable Curl","Lying Cable Curl",
-    "Concentration Hammer Curl","Plate Pinch Curl","Tempo Curl",
+    "Reverse Wrist Curl","Concentration Hammer Curl","Plate Pinch Curl","Tempo Curl","Eccentric Curl",
+    "Banded Bicep Curl","Chin-Up","Wide-Grip Chin-Up","Towel Chin-Up",
   ],
   Triceps: [
     "Tricep Pushdown","Rope Pushdown","V-Bar Pushdown","Reverse-Grip Pushdown","Single-Arm Pushdown",
-    "Straight-Bar Pushdown","Overhead Tricep Extension","Overhead Rope Extension","Single-Arm Overhead Extension",
-    "Lying Tricep Extension","Skull Crusher","EZ-Bar Skull Crusher","Dumbbell Skull Crusher","Tate Press",
-    "Close-Grip Bench Press","Floor Press","Board Press","JM Press","California Press","Decline Skull Crusher",
-    "Tricep Dip","Bench Dip","Weighted Dip","Ring Dip","Bodyweight Skull Crusher","Diamond Push-Up",
-    "Close-Grip Push-Up","Tricep Kickback","Cable Kickback","Dumbbell Kickback","Single-Arm Kickback",
-    "Cable Overhead Extension","Lying Cable Extension","Cross-Body Cable Extension","Bench Press for Tris",
-    "Reverse-Grip Tricep Pushdown","Push-Up to Tricep Extension","Machine Tricep Extension",
-    "Resistance Band Pushdown","Plate Tricep Extension",
+    "Straight-Bar Pushdown","Cross-Body Pushdown","Banded Pushdown","Resistance Band Pushdown",
+    "Overhead Tricep Extension","Overhead Rope Extension","Overhead Cable Extension",
+    "Single-Arm Overhead Extension","Seated Overhead Extension","Lying Tricep Extension","French Press",
+    "Skull Crusher","EZ-Bar Skull Crusher","Dumbbell Skull Crusher","Decline Skull Crusher","Tate Press",
+    "Close-Grip Bench Press","Floor Press","Board Press","JM Press","California Press","Smith Machine Close-Grip Press",
+    "Tricep Dip","Bench Dip","Weighted Dip","Ring Dip","Machine Dip","Assisted Dip Machine",
+    "Bodyweight Skull Crusher","Diamond Push-Up","Close-Grip Push-Up","Tricep Push-Up","Tricep Kickback",
+    "Cable Kickback","Dumbbell Kickback","Single-Arm Kickback","Cable Overhead Extension","Lying Cable Extension",
+    "Cross-Body Cable Extension","Bench Press for Tris","Reverse-Grip Tricep Pushdown","Push-Up to Tricep Extension",
+    "Machine Tricep Extension","Plate Tricep Extension","Iso-Lateral Tricep Extension","Smith Machine Skull Crusher",
+    "Single-Arm Cable Pushdown (Reverse)","High Cable Tricep Extension",
   ],
   Quads: [
     "Back Squat","Barbell Squat","Barbell Back Squat","High-Bar Squat","Low-Bar Squat","Pause Squat","Tempo Squat",
     "Front Squat","Cross-Arm Front Squat","Zercher Squat","Overhead Squat","Goblet Squat","Cyclist Squat",
-    "Box Squat","Pin Squat","Anderson Squat","Hatfield Squat","Safety Bar Squat","Smith Machine Squat",
-    "Leg Press","Single-Leg Press","Hack Squat","Reverse Hack Squat","Belt Squat","V-Squat",
-    "Bulgarian Split Squat","Split Squat","Walking Lunge","Reverse Lunge","Forward Lunge","Lateral Lunge",
-    "Curtsy Lunge","Dumbbell Lunge","Barbell Lunge","Walking Dumbbell Lunge","Deficit Lunge",
-    "Step-Up","Dumbbell Step-Up","Barbell Step-Up","Lateral Step-Up","Box Step-Up","Leg Extension",
-    "Single-Leg Extension","Sissy Squat","Wall Sit","Pistol Squat","Shrimp Squat","Cossack Squat",
+    "Box Squat","Pin Squat","Anderson Squat","Hatfield Squat","Safety Bar Squat","SSB Squat","Smith Machine Squat",
+    "Smith Machine Front Squat","Smith Machine Hack Squat","Banded Squat","Chain Squat",
+    "Leg Press","Single-Leg Press","45-Degree Leg Press","Horizontal Leg Press","Vertical Leg Press",
+    "Hack Squat","Reverse Hack Squat","Pendulum Squat","Belt Squat","V-Squat","Pit Shark Squat","Machine Squat",
+    "Bulgarian Split Squat","Split Squat","Heel-Elevated Split Squat","Walking Lunge","Reverse Lunge","Forward Lunge",
+    "Lateral Lunge","Curtsy Lunge","Dumbbell Lunge","Barbell Lunge","Walking Dumbbell Lunge","Deficit Lunge",
+    "Smith Machine Lunge","Smith Machine Bulgarian Split Squat",
+    "Step-Up","Dumbbell Step-Up","Barbell Step-Up","Lateral Step-Up","Box Step-Up","High Box Step-Up",
+    "Leg Extension","Single-Leg Extension","Sissy Squat","Wall Sit","Pistol Squat","Shrimp Squat","Cossack Squat",
     "Sumo Squat","Plié Squat","Jefferson Squat","Goblet Cossack Squat","Skater Squat","Spanish Squat",
-    "Banded Squat","Jump Squat","Tuck Jump","Squat to Press","Thruster",
+    "Jump Squat","Tuck Jump","Squat to Press","Thruster","Heel-Elevated Goblet Squat","Heel-Elevated Back Squat",
   ],
   Hamstrings: [
     "Romanian Deadlift","Single-Leg RDL","Dumbbell RDL","Snatch-Grip RDL","Stiff-Leg Deadlift",
+    "Smith Machine RDL","B-Stance RDL","Deficit RDL","Trap Bar RDL","Banded RDL",
     "Leg Curl","Lying Leg Curl","Seated Leg Curl","Single-Leg Curl","Standing Leg Curl",
-    "Nordic Curl","Slider Curl","Swiss Ball Curl","Good Morning","Seated Good Morning",
-    "Banded Good Morning","Glute-Ham Raise","Razor Curl","Reverse Hyperextension","45-Degree Hyper",
-    "Kettlebell Swing","American Kettlebell Swing","Cable Pull-Through","Banded Pull-Through",
-    "Hip Hinge","Single-Leg Stiff-Leg Deadlift","Deficit RDL","B-Stance RDL","Stability Ball Bridge Curl",
-    "Trap Bar RDL",
+    "Hamstring Curl Machine","Nordic Curl","Slider Curl","Swiss Ball Curl","Eccentric Nordic Curl",
+    "Good Morning","Seated Good Morning","Banded Good Morning","Glute-Ham Raise","Razor Curl",
+    "Reverse Hyperextension","45-Degree Hyper","Cable Pull-Through","Banded Pull-Through","Hip Hinge",
+    "Single-Leg Stiff-Leg Deadlift","Stability Ball Bridge Curl","Kettlebell Swing","American Kettlebell Swing",
+    "Romanian Deadlift Machine","TKE (Terminal Knee Extension)",
   ],
   Glutes: [
     "Barbell Hip Thrust","Dumbbell Hip Thrust","Single-Leg Hip Thrust","B-Stance Hip Thrust","Banded Hip Thrust",
-    "Machine Hip Thrust","Glute Bridge","Single-Leg Glute Bridge","Banded Glute Bridge","Frog Pump",
-    "Cable Kickback","Single-Leg Cable Kickback","Donkey Kick","Banded Donkey Kick","Fire Hydrant",
+    "Machine Hip Thrust","Smith Machine Hip Thrust","Glute Drive Machine","Hip Thrust March",
+    "Glute Bridge","Single-Leg Glute Bridge","Banded Glute Bridge","Barbell Glute Bridge","Frog Pump","Frog Bridge",
+    "Cable Kickback","Single-Leg Cable Kickback","Stiff-Leg Cable Kickback","Cable Glute Kickback (Cuff)",
+    "Donkey Kick","Banded Donkey Kick","Fire Hydrant","Banded Fire Hydrant",
     "Clamshell","Banded Clamshell","Side-Lying Hip Abduction","Standing Hip Abduction","Cable Hip Abduction",
-    "Machine Hip Abduction","Sumo Deadlift","Sumo Squat","Curtsy Lunge","Reverse Lunge","Step-Up",
-    "Bulgarian Split Squat","Hip Thrust March","Romanian Deadlift","Cable Pull-Through","Glute Kickback Machine",
-    "Banded Lateral Walk","Banded Monster Walk","Single-Leg Glute Kickback","Stiff-Leg Cable Kickback",
-    "Smith Machine Hip Thrust","Pendulum Glute Kick",
+    "Machine Hip Abduction","Seated Hip Abduction","Cable Hip Adduction","Machine Hip Adduction",
+    "Sumo Deadlift","Sumo Squat","Curtsy Lunge","Reverse Lunge","Step-Up","Bulgarian Split Squat",
+    "Romanian Deadlift","Cable Pull-Through","Glute Kickback Machine","Pendulum Glute Kick",
+    "Banded Lateral Walk","Banded Monster Walk","Banded Crab Walk","Single-Leg Glute Kickback",
+    "Glute Bridge Walkout","45-Degree Hyper (Glute Focus)","Cossack Squat","Smith Machine Glute Kickback",
   ],
   Calves: [
     "Standing Calf Raise","Seated Calf Raise","Leg Press Calf Raise","Smith Machine Calf Raise",
-    "Single-Leg Calf Raise","Donkey Calf Raise","Tibialis Raise","Toe Walking","Heel Walking",
-    "Calf Press","Barbell Calf Raise","Dumbbell Calf Raise","Farmer's Calf Raise","Box Jump",
-    "Pogo Hop","Jump Rope","Double-Under","Bunny Hop","Hill Sprint","Calf Raise on Step",
-    "Eccentric Calf Raise","Banded Calf Raise","Weighted Tibialis Raise",
+    "Single-Leg Calf Raise","Donkey Calf Raise","Tibialis Raise","Banded Tibialis Raise",
+    "Weighted Tibialis Raise","Toe Walking","Heel Walking","Calf Press","Barbell Calf Raise",
+    "Dumbbell Calf Raise","Farmer's Calf Raise","Hack Squat Calf Raise","Box Jump","Pogo Hop",
+    "Jump Rope","Double-Under","Bunny Hop","Hill Sprint","Calf Raise on Step","Eccentric Calf Raise",
+    "Banded Calf Raise","Seated Tibialis Raise","Single-Leg Tibialis Raise","Smith Machine Seated Calf Raise",
   ],
   Core: [
     "Plank","Side Plank","Forearm Plank","RKC Plank","Long-Lever Plank","Plank with Shoulder Tap",
-    "Plank with Leg Raise","Plank-to-Push-Up","Side Plank with Hip Dip","Bird Dog","Dead Bug",
+    "Plank with Leg Raise","Plank-to-Push-Up","Side Plank with Hip Dip","Weighted Plank","Bird Dog","Dead Bug",
     "Hollow Hold","Hollow Rock","Arch Hold","Superman","Bear Crawl","Crab Walk","Crunch","Decline Crunch",
     "Reverse Crunch","Bicycle Crunch","Cable Crunch","Kneeling Cable Crunch","Standing Cable Crunch",
-    "V-Up","Tuck-Up","Toe Touch","Sit-Up","GHD Sit-Up","Weighted Sit-Up","Russian Twist","Weighted Russian Twist",
+    "V-Up","Tuck-Up","Toe Touch","Sit-Up","Weighted Sit-Up","GHD Sit-Up","Russian Twist","Weighted Russian Twist",
     "Medicine Ball Slam","Woodchop","Cable Woodchop","Pallof Press","Half-Kneeling Pallof Press",
-    "Anti-Rotation Press","Hanging Leg Raise","Hanging Knee Raise","Toes-to-Bar","Knees-to-Elbows","L-Sit Hold",
-    "Dragon Flag","Hollow Body Pull-Up","Ab Wheel Rollout","Stability Ball Rollout","Barbell Rollout",
-    "Farmer's Carry","Suitcase Carry","Overhead Carry","Bottoms-Up Carry","Windshield Wiper","Flutter Kick",
-    "Scissor Kick","Mountain Climber","Slow Mountain Climber","Cross-Body Mountain Climber","Hollow Hold Flutter",
-    "Stir the Pot","Side Bend","Cable Side Bend","Dumbbell Side Bend","Copenhagen Plank","Standing Ab Wheel",
+    "Standing Pallof Press","Anti-Rotation Press","Hanging Leg Raise","Hanging Knee Raise","Toes-to-Bar",
+    "Knees-to-Elbows","L-Sit Hold","Dragon Flag","Hollow Body Pull-Up","Ab Wheel Rollout","Standing Ab Wheel",
+    "Stability Ball Rollout","Barbell Rollout","Farmer's Carry","Suitcase Carry","Overhead Carry",
+    "Bottoms-Up Carry","Windshield Wiper","Flutter Kick","Scissor Kick","Mountain Climber","Slow Mountain Climber",
+    "Cross-Body Mountain Climber","Hollow Hold Flutter","Stir the Pot","Side Bend","Cable Side Bend",
+    "Dumbbell Side Bend","Copenhagen Plank","Banded Anti-Rotation","Suitcase Hold","Landmine 180","Landmine Twist",
+    "Bear Plank","Spider-Man Crunch","Captain's Chair Knee Raise","Captain's Chair Leg Raise",
   ],
   Forearms: [
-    "Wrist Curl","Reverse Wrist Curl","Behind-the-Back Wrist Curl","Hammer Curl","Reverse Curl",
-    "Zottman Curl","Farmer's Walk","Plate Pinch","Towel Pull-Up","Dead Hang","Bar Hang","Fat Grip Curl",
-    "Wrist Roller","Finger Curl","Reverse Finger Curl","Gripper Squeeze","Forearm Plank","Rice Bucket",
+    "Wrist Curl","Reverse Wrist Curl","Behind-the-Back Wrist Curl","Cable Wrist Curl","Dumbbell Wrist Curl",
+    "Barbell Wrist Curl","Hammer Curl","Reverse Curl","Zottman Curl","Farmer's Walk","Suitcase Carry",
+    "Plate Pinch","Towel Pull-Up","Dead Hang","Bar Hang","One-Arm Hang","Fat Grip Curl","Fat Grip Pull-Up",
+    "Wrist Roller","Finger Curl","Reverse Finger Curl","Gripper Squeeze","Captains of Crush",
+    "Forearm Plank","Rice Bucket","Sledgehammer Levering","Wrist Pronation","Wrist Supination",
+    "Banded Wrist Extension","Banded Wrist Flexion",
   ],
   Olympic: [
     "Power Clean","Hang Clean","Clean Pull","Clean from Blocks","Muscle Clean","Squat Clean","Split Clean",
@@ -168,6 +206,10 @@ const ALL_EXERCISES = Object.entries(EXERCISES).flatMap(([cat, list]) =>
 // ─── SPLITS ──────────────────────────────────────────────────────────────────
 // freqOptions: the allowed day counts. The base `days` array is the pattern —
 // it gets cycled to fill whatever frequency the user picks.
+// A "pattern" is a slot in the weekly cycle (e.g. "Push", "Pull", "Legs").
+// Each pattern has 1+ "variations" — different exercise selections that hit the
+// same movement pattern. In rotate mode, we cycle through variations A, B, C...
+// In repeat mode, we always use variation A.
 const SPLITS = {
   "Push / Pull / Legs": {
     color: "#ff6b35",
@@ -175,10 +217,22 @@ const SPLITS = {
     experience: ["Intermediate","Advanced"],
     freqOptions: [3,4,5,6,7],
     defaultFreq: 3,
-    days: [
-      { name:"Push Day", tag:"Push", exercises:["Barbell Bench Press","Barbell Overhead Press","Incline Dumbbell Press","Lateral Raise","Tricep Pushdown","Skull Crusher"] },
-      { name:"Pull Day", tag:"Pull", exercises:["Deadlift","Barbell Row","Lat Pulldown","Face Pull","Barbell Curl","Hammer Curl"] },
-      { name:"Leg Day", tag:"Legs", exercises:["Barbell Squat","Romanian Deadlift","Leg Press","Leg Curl","Standing Calf Raise","Leg Extension"] },
+    patterns: [
+      { name:"Push Day", tag:"Push", variations: [
+        ["Barbell Bench Press","Barbell Overhead Press","Incline Dumbbell Press","Lateral Raise","Tricep Pushdown","Skull Crusher"],
+        ["Incline Barbell Press","Seated Dumbbell Press","Cable Chest Fly","Cable Lateral Raise","Overhead Tricep Extension","Tricep Dip"],
+        ["Close-Grip Bench Press","Arnold Press","Decline Dumbbell Press","Front Raise","Rope Pushdown","JM Press"],
+      ]},
+      { name:"Pull Day", tag:"Pull", variations: [
+        ["Deadlift","Barbell Row","Lat Pulldown","Face Pull","Barbell Curl","Hammer Curl"],
+        ["Romanian Deadlift","T-Bar Row","Wide-Grip Pull-Up","Reverse Pec Deck","Preacher Curl","Cable Curl"],
+        ["Rack Pull","Seated Cable Row","Chin-Up","Rear Delt Fly","Incline Dumbbell Curl","Concentration Curl"],
+      ]},
+      { name:"Leg Day", tag:"Legs", variations: [
+        ["Barbell Squat","Romanian Deadlift","Leg Press","Leg Curl","Standing Calf Raise","Leg Extension"],
+        ["Front Squat","Bulgarian Split Squat","Hack Squat","Seated Leg Curl","Seated Calf Raise","Walking Lunge"],
+        ["Goblet Squat","Stiff-Leg Deadlift","Lunge","Nordic Curl","Donkey Calf Raise","Sissy Squat"],
+      ]},
     ],
   },
   "Bro Split": {
@@ -187,27 +241,56 @@ const SPLITS = {
     experience: ["Beginner","Intermediate"],
     freqOptions: [4,5,6,7],
     defaultFreq: 5,
-    days: [
-      { name:"Chest Day",    tag:"Chest",     exercises:["Barbell Bench Press","Incline Dumbbell Press","Cable Crossover","Chest Dip","Pec Deck Machine"] },
-      { name:"Back Day",     tag:"Back",      exercises:["Deadlift","Barbell Row","Lat Pulldown","Seated Cable Row","Face Pull"] },
-      { name:"Shoulder Day", tag:"Shoulders", exercises:["Barbell Overhead Press","Arnold Press","Lateral Raise","Rear Delt Fly","Shrug"] },
-      { name:"Arm Day",      tag:"Arms",      exercises:["Barbell Curl","Preacher Curl","Hammer Curl","Skull Crusher","Tricep Pushdown","Overhead Tricep Extension"] },
-      { name:"Leg Day",      tag:"Legs",      exercises:["Barbell Squat","Leg Press","Romanian Deadlift","Leg Curl","Standing Calf Raise"] },
+    patterns: [
+      { name:"Chest Day", tag:"Chest", variations: [
+        ["Barbell Bench Press","Incline Dumbbell Press","Cable Crossover","Chest Dip","Pec Deck Machine"],
+        ["Incline Barbell Press","Dumbbell Bench Press","Cable Chest Fly","Decline Bench Press","Push-Up"],
+        ["Close-Grip Bench Press","Dumbbell Fly","Incline Cable Fly","Weighted Chest Dip","Smith Machine Bench Press"],
+      ]},
+      { name:"Back Day", tag:"Back", variations: [
+        ["Deadlift","Barbell Row","Lat Pulldown","Seated Cable Row","Face Pull"],
+        ["Romanian Deadlift","T-Bar Row","Pull-Up","Single-Arm Dumbbell Row","Straight-Arm Pulldown"],
+        ["Rack Pull","Pendlay Row","Wide-Grip Pull-Up","Chest-Supported Dumbbell Row","Reverse Pec Deck"],
+      ]},
+      { name:"Shoulder Day", tag:"Shoulders", variations: [
+        ["Barbell Overhead Press","Arnold Press","Lateral Raise","Rear Delt Fly","Shrug"],
+        ["Seated Dumbbell Press","Cable Lateral Raise","Face Pull","Upright Row","Front Raise"],
+        ["Smith Machine Shoulder Press","Machine Lateral Raise","Reverse Pec Deck","Z Press","Cable Y-Raise"],
+      ]},
+      { name:"Arm Day", tag:"Arms", variations: [
+        ["Barbell Curl","Preacher Curl","Hammer Curl","Skull Crusher","Tricep Pushdown","Overhead Tricep Extension"],
+        ["EZ-Bar Curl","Incline Dumbbell Curl","Cable Curl","Tricep Dip","Rope Pushdown","Close-Grip Bench Press"],
+        ["Spider Curl","Concentration Curl","Zottman Curl","JM Press","Cable Kickback","Diamond Push-Up"],
+      ]},
+      { name:"Leg Day", tag:"Legs", variations: [
+        ["Barbell Squat","Leg Press","Romanian Deadlift","Leg Curl","Standing Calf Raise"],
+        ["Front Squat","Hack Squat","Stiff-Leg Deadlift","Seated Leg Curl","Seated Calf Raise"],
+        ["Bulgarian Split Squat","Walking Lunge","Nordic Curl","Leg Extension","Donkey Calf Raise"],
+      ]},
     ],
   },
   "Arnold Split": {
     color: "#fdcb6e",
     description: "Arnold's 6-day chest/back + shoulders/arms + legs. High volume.",
     experience: ["Advanced"],
-    freqOptions: [4,6,7],
+    freqOptions: [3,4,6,7],
     defaultFreq: 6,
-    days: [
-      { name:"Chest & Back A",     tag:"Chest",     exercises:["Barbell Bench Press","Wide-Grip Pull-Up","Incline Dumbbell Press","Barbell Row","Dumbbell Fly","Seated Cable Row"] },
-      { name:"Shoulders & Arms A", tag:"Shoulders", exercises:["Barbell Overhead Press","Barbell Curl","Lateral Raise","Skull Crusher","Rear Delt Fly","Hammer Curl"] },
-      { name:"Legs A",             tag:"Legs",      exercises:["Barbell Squat","Romanian Deadlift","Leg Press","Leg Curl","Standing Calf Raise"] },
-      { name:"Chest & Back B",     tag:"Chest",     exercises:["Incline Barbell Press","T-Bar Row","Cable Crossover","Lat Pulldown","Chest Dip","Dumbbell Row"] },
-      { name:"Shoulders & Arms B", tag:"Shoulders", exercises:["Arnold Press","Preacher Curl","Upright Row","Tricep Dip","Cable Lateral Raise","Concentration Curl"] },
-      { name:"Legs B",             tag:"Legs",      exercises:["Front Squat","Leg Extension","Bulgarian Split Squat","Seated Leg Curl","Seated Calf Raise"] },
+    patterns: [
+      { name:"Chest & Back", tag:"Chest", variations: [
+        ["Barbell Bench Press","Wide-Grip Pull-Up","Incline Dumbbell Press","Barbell Row","Dumbbell Fly","Seated Cable Row"],
+        ["Incline Barbell Press","T-Bar Row","Cable Crossover","Lat Pulldown","Chest Dip","Dumbbell Row"],
+        ["Decline Bench Press","Pendlay Row","Dumbbell Bench Press","Chin-Up","Pec Deck Machine","Single-Arm Cable Row"],
+      ]},
+      { name:"Shoulders & Arms", tag:"Shoulders", variations: [
+        ["Barbell Overhead Press","Barbell Curl","Lateral Raise","Skull Crusher","Rear Delt Fly","Hammer Curl"],
+        ["Arnold Press","Preacher Curl","Upright Row","Tricep Dip","Cable Lateral Raise","Concentration Curl"],
+        ["Seated Dumbbell Press","Incline Dumbbell Curl","Face Pull","Overhead Tricep Extension","Cable Curl","Rope Pushdown"],
+      ]},
+      { name:"Legs", tag:"Legs", variations: [
+        ["Barbell Squat","Romanian Deadlift","Leg Press","Leg Curl","Standing Calf Raise"],
+        ["Front Squat","Leg Extension","Bulgarian Split Squat","Seated Leg Curl","Seated Calf Raise"],
+        ["Hack Squat","Stiff-Leg Deadlift","Walking Lunge","Nordic Curl","Donkey Calf Raise"],
+      ]},
     ],
   },
   "Upper / Lower": {
@@ -216,11 +299,17 @@ const SPLITS = {
     experience: ["Beginner","Intermediate"],
     freqOptions: [2,3,4,5,6,7],
     defaultFreq: 4,
-    days: [
-      { name:"Upper A", tag:"Upper", exercises:["Barbell Bench Press","Barbell Row","Barbell Overhead Press","Lat Pulldown","Barbell Curl","Tricep Pushdown"] },
-      { name:"Lower A", tag:"Lower", exercises:["Barbell Squat","Romanian Deadlift","Leg Extension","Leg Curl","Standing Calf Raise"] },
-      { name:"Upper B", tag:"Upper", exercises:["Incline Dumbbell Press","Dumbbell Row","Arnold Press","Chin-Up","Hammer Curl","Skull Crusher"] },
-      { name:"Lower B", tag:"Lower", exercises:["Romanian Deadlift","Leg Press","Bulgarian Split Squat","Leg Curl","Seated Calf Raise"] },
+    patterns: [
+      { name:"Upper", tag:"Upper", variations: [
+        ["Barbell Bench Press","Barbell Row","Barbell Overhead Press","Lat Pulldown","Barbell Curl","Tricep Pushdown"],
+        ["Incline Dumbbell Press","Dumbbell Row","Arnold Press","Chin-Up","Hammer Curl","Skull Crusher"],
+        ["Close-Grip Bench Press","T-Bar Row","Seated Dumbbell Press","Pull-Up","Preacher Curl","Overhead Tricep Extension"],
+      ]},
+      { name:"Lower", tag:"Lower", variations: [
+        ["Barbell Squat","Romanian Deadlift","Leg Extension","Leg Curl","Standing Calf Raise"],
+        ["Front Squat","Leg Press","Bulgarian Split Squat","Seated Leg Curl","Seated Calf Raise"],
+        ["Deadlift","Hack Squat","Walking Lunge","Nordic Curl","Donkey Calf Raise"],
+      ]},
     ],
   },
   "Anterior / Posterior": {
@@ -229,9 +318,17 @@ const SPLITS = {
     experience: ["Intermediate","Advanced"],
     freqOptions: [2,3,4,5,6,7],
     defaultFreq: 4,
-    days: [
-      { name:"Anterior", tag:"Anterior", exercises:["Barbell Bench Press","Barbell Overhead Press","Barbell Squat","Leg Press","Barbell Curl","Leg Extension"] },
-      { name:"Posterior", tag:"Posterior", exercises:["Deadlift","Barbell Row","Romanian Deadlift","Lat Pulldown","Leg Curl","Rear Delt Fly"] },
+    patterns: [
+      { name:"Anterior", tag:"Anterior", variations: [
+        ["Barbell Bench Press","Barbell Overhead Press","Barbell Squat","Leg Press","Barbell Curl","Leg Extension"],
+        ["Incline Dumbbell Press","Seated Dumbbell Press","Front Squat","Walking Lunge","Preacher Curl","Sissy Squat"],
+        ["Close-Grip Bench Press","Arnold Press","Goblet Squat","Bulgarian Split Squat","Cable Curl","Step-Up"],
+      ]},
+      { name:"Posterior", tag:"Posterior", variations: [
+        ["Deadlift","Barbell Row","Romanian Deadlift","Lat Pulldown","Leg Curl","Rear Delt Fly"],
+        ["Rack Pull","T-Bar Row","Stiff-Leg Deadlift","Wide-Grip Pull-Up","Seated Leg Curl","Face Pull"],
+        ["Trap Bar Deadlift","Pendlay Row","Single-Leg RDL","Chin-Up","Nordic Curl","Reverse Pec Deck"],
+      ]},
     ],
   },
   "Left / Right": {
@@ -240,9 +337,15 @@ const SPLITS = {
     experience: ["Beginner","Intermediate","Advanced"],
     freqOptions: [2,3,4,5,6,7],
     defaultFreq: 4,
-    days: [
-      { name:"Left Side",  tag:"Left",  exercises:["Single-Leg RDL","Single-Arm Cable Row","Bulgarian Split Squat","Single-Leg Calf Raise","Concentration Curl","Kickback"] },
-      { name:"Right Side", tag:"Right", exercises:["Single-Leg RDL","Single-Arm Cable Row","Bulgarian Split Squat","Single-Leg Calf Raise","Concentration Curl","Kickback"] },
+    patterns: [
+      { name:"Left Side", tag:"Left", variations: [
+        ["Single-Leg RDL","Single-Arm Cable Row","Bulgarian Split Squat","Single-Leg Calf Raise","Concentration Curl","Tricep Kickback"],
+        ["Single-Leg Press","Single-Arm Dumbbell Row","Pistol Squat","Single-Leg Hip Thrust","Hammer Curl","Single-Arm Pushdown"],
+      ]},
+      { name:"Right Side", tag:"Right", variations: [
+        ["Single-Leg RDL","Single-Arm Cable Row","Bulgarian Split Squat","Single-Leg Calf Raise","Concentration Curl","Tricep Kickback"],
+        ["Single-Leg Press","Single-Arm Dumbbell Row","Pistol Squat","Single-Leg Hip Thrust","Hammer Curl","Single-Arm Pushdown"],
+      ]},
     ],
   },
   "Full Body": {
@@ -251,27 +354,62 @@ const SPLITS = {
     experience: ["Beginner"],
     freqOptions: [2,3,4,5,6,7],
     defaultFreq: 3,
-    days: [
-      { name:"Full Body A", tag:"Full", exercises:["Barbell Squat","Barbell Bench Press","Barbell Row","Barbell Overhead Press","Plank","Standing Calf Raise"] },
-      { name:"Full Body B", tag:"Full", exercises:["Deadlift","Incline Dumbbell Press","Lat Pulldown","Dumbbell Shoulder Press","Hanging Leg Raise","Seated Calf Raise"] },
+    patterns: [
+      { name:"Full Body", tag:"Full", variations: [
+        ["Barbell Squat","Barbell Bench Press","Barbell Row","Barbell Overhead Press","Plank","Standing Calf Raise"],
+        ["Deadlift","Incline Dumbbell Press","Lat Pulldown","Dumbbell Shoulder Press","Hanging Leg Raise","Seated Calf Raise"],
+        ["Front Squat","Dumbbell Bench Press","T-Bar Row","Arnold Press","Ab Wheel Rollout","Donkey Calf Raise"],
+      ]},
     ],
   },
 };
 
 // Given a split's base days array and a target frequency, cycle through the
 // pattern to produce exactly `freq` named workout days for the week.
-function buildWeekSchedule(splitDays, freq) {
-  const ORDINALS = ["Day 1","Day 2","Day 3","Day 4","Day 5","Day 6","Day 7"];
+// Builds a weekly schedule from a list of split day templates.
+// mode: "rotate" (cycle A/B/C through unique days — current behavior)
+//       "repeat-named" (use only the first day, repeat with same name)
+//       "repeat-numbered" (use only the first day, number each session)
+// dayIndex (for repeat modes): which day from the split to repeat (default 0)
+// Builds a weekly schedule from a split's patterns.
+// mode: "repeat" — always use variation A (same exercises each cycle)
+//                  e.g. Anterior/Posterior 6x → Anterior, Posterior, Anterior, Posterior, Anterior, Posterior
+//                  (all Anteriors = same; all Posteriors = same)
+//       "rotate" — cycle through variations A, B, C... per pattern independently
+//                  e.g. Anterior/Posterior 6x → Anterior A, Posterior A, Anterior B, Posterior B, Anterior C, Posterior C
+//                  (each pattern gets variation suffix; exercises differ)
+function buildWeekSchedule(patterns, freq, mode = "repeat") {
   const DAY_NAMES = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const VARIATION_LETTERS = ["A","B","C","D","E","F"];
+
+  // Track how many times we've used each pattern so far (for variation indexing)
+  const patternUseCount = patterns.map(() => 0);
+
   return Array.from({ length: freq }, (_, i) => {
-    const base = splitDays[i % splitDays.length];
-    // If the split has fewer base days than freq, append A/B/C suffixes on repeats
-    const cycle = Math.floor(i / splitDays.length);
-    const suffix = freq > splitDays.length && cycle > 0 ? ` (${["A","B","C","D"][cycle]})` : "";
+    const patternIdx = i % patterns.length;
+    const pattern = patterns[patternIdx];
+    const useIdx = patternUseCount[patternIdx];
+    patternUseCount[patternIdx] += 1;
+
+    let variationIdx, displayName;
+    if (mode === "rotate") {
+      // Cycle through available variations for this pattern
+      variationIdx = useIdx % pattern.variations.length;
+      // Only show variation letter if there's more than one use of this pattern
+      const totalUses = Math.ceil((freq - patternIdx) / patterns.length);
+      displayName = totalUses > 1 ? `${pattern.name} ${VARIATION_LETTERS[variationIdx]}` : pattern.name;
+    } else {
+      // Repeat: always variation A
+      variationIdx = 0;
+      displayName = pattern.name;
+    }
+
     return {
-      ...base,
+      name: pattern.name,
+      tag: pattern.tag,
+      exercises: pattern.variations[variationIdx],
       scheduledDay: DAY_NAMES[i],
-      displayName: `${base.name}${suffix}`,
+      displayName,
     };
   });
 }
@@ -333,7 +471,38 @@ export default function App() {
   const [profile, setProfile] = useState(() => {
     try { return JSON.parse(localStorage.getItem("wt_profile2")||"null"); } catch { return null; }
   });
-  const [current, setCurrent] = useState({ name:"", exercises:[], tag:null });
+  const [current, setCurrent] = useState(() => {
+    // Attempt to restore an in-progress workout from a previous session.
+    // Drafts expire after 24 hours to avoid restoring stale workouts.
+    try {
+      const raw = localStorage.getItem("wt_currentDraft");
+      if (!raw) return { name:"", exercises:[], tag:null };
+      const draft = JSON.parse(raw);
+      const age = Date.now() - (draft.savedAt || 0);
+      if (age > 24 * 60 * 60 * 1000) {
+        // Expired — discard
+        localStorage.removeItem("wt_currentDraft");
+        return { name:"", exercises:[], tag:null };
+      }
+      // Strip savedAt before restoring (it's metadata, not state)
+      const { savedAt, ...state } = draft;
+      return state;
+    } catch {
+      return { name:"", exercises:[], tag:null };
+    }
+  });
+  // Also restore the active program slot if user was mid-workout against the schedule.
+  // Only meaningful if a workout draft exists — otherwise clear it.
+  const [activeSlot, setActiveSlot] = useState(() => {
+    try {
+      const hasDraft = !!localStorage.getItem("wt_currentDraft");
+      if (!hasDraft) {
+        localStorage.removeItem("wt_activeSlot");
+        return null;
+      }
+      return JSON.parse(localStorage.getItem("wt_activeSlot")||"null");
+    } catch { return null; }
+  });
   const [addEx, setAddEx] = useState({ open:false, category:"All", search:"" });
   // Plans navigation: null = list, string = split detail
   const [selectedSplit, setSelectedSplit] = useState(null);
@@ -343,6 +512,8 @@ export default function App() {
   const [draft, setDraft] = useState({ experience:"", name:"", goal:"" });
   // Delete confirmation: id of workout pending delete, or "all" for clear-all
   const [confirmDelete, setConfirmDelete] = useState(null);
+  // Adoption modal: { splitName, frequency } when picking how to schedule
+  const [adoptModal, setAdoptModal] = useState(null);
 
   // ─── ACTIVE PROGRAM STATE ────────────────────────────────────────────────────
   // activeProgram: { source: "split"|"ai"|"custom", splitName?, frequency?, days:[{name,tag,exercises}], startDate }
@@ -357,9 +528,7 @@ export default function App() {
   // Which week the user is currently viewing in the Program tab.
   // null = current week (auto-calculated from startDate).
   const [viewedWeek, setViewedWeek] = useState(null);
-  // Tracks which program slot is being edited in the Log tab, so finishing
-  // can link the workout back to the schedule.
-  const [activeSlot, setActiveSlot] = useState(null); // { weekIndex, dayIndex } or null
+  // activeSlot is declared earlier (along with `current`) so it can be restored from localStorage
 
   useEffect(() => {
     if (activeProgram) try { localStorage.setItem("wt_activeProgram", JSON.stringify(activeProgram)); } catch {}
@@ -391,6 +560,39 @@ export default function App() {
   useEffect(() => { try { localStorage.setItem("wt_workouts2", JSON.stringify(workouts)); } catch {} }, [workouts]);
   useEffect(() => { if (profile) try { localStorage.setItem("wt_profile2", JSON.stringify(profile)); } catch {} }, [profile]);
 
+  // ─── AUTO-SAVE IN-PROGRESS WORKOUT ───────────────────────────────────────────
+  // Save the current workout to localStorage whenever it changes, so if the
+  // app is killed mid-workout (iOS memory pressure, browser crash, accidental
+  // close), the user can resume right where they left off.
+  useEffect(() => {
+    try {
+      if (current.exercises.length > 0) {
+        localStorage.setItem("wt_currentDraft", JSON.stringify({
+          ...current,
+          savedAt: Date.now(),
+        }));
+      } else {
+        // Empty workout = nothing to save
+        localStorage.removeItem("wt_currentDraft");
+      }
+    } catch {}
+  }, [current]);
+
+  // Persist activeSlot so program-linked workouts also survive a reload
+  useEffect(() => {
+    try {
+      if (activeSlot) localStorage.setItem("wt_activeSlot", JSON.stringify(activeSlot));
+      else localStorage.removeItem("wt_activeSlot");
+    } catch {}
+  }, [activeSlot]);
+
+  // On mount, if a draft was restored, force the user into the Log tab so they
+  // see their unfinished workout immediately (not whatever tab they last had open).
+  useEffect(() => {
+    if (current.exercises.length > 0) setTab("log");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function getFreq(splitName) {
     return splitFreqs[splitName] ?? SPLITS[splitName].defaultFreq;
   }
@@ -420,6 +622,28 @@ export default function App() {
     return null;
   }
 
+  // Find the last N sessions where this exercise was performed.
+  // Returns an array of { weight, reps, date }, most recent first.
+  function findRecentSessions(exerciseName, n = 3) {
+    const sessions = [];
+    for (const w of workouts) {
+      const ex = w.exercises.find(e => e.name === exerciseName);
+      if (!ex) continue;
+      let best = null;
+      for (const s of ex.sets) {
+        const wt = parseFloat(s.weight) || 0;
+        const rp = parseFloat(s.reps) || 0;
+        if (wt === 0 && rp === 0) continue;
+        if (!best || wt > best.weight || (wt === best.weight && rp > best.reps)) {
+          best = { weight: wt, reps: rp, date: w.date };
+        }
+      }
+      if (best) sessions.push(best);
+      if (sessions.length >= n) break;
+    }
+    return sessions;
+  }
+
   // Find the previous identical workout (same name) — used to show "same as last time"
   function findLastSession(workoutName) {
     return workouts.find(w => w.name === workoutName) || null;
@@ -427,10 +651,11 @@ export default function App() {
 
   // Build an exercise object with empty sets but a `last` reference attached.
   function buildExerciseEntry(name) {
-    const last = findLastPerformance(name);
+    const recent = findRecentSessions(name, 3);
     return {
       name,
-      last,                       // { weight, reps, date } or null
+      last: recent[0] || null,    // { weight, reps, date } or null
+      recent,                     // up to 3 most recent sessions
       sets: [{ reps:"", weight:"" }],
     };
   }
@@ -576,23 +801,24 @@ Generate a JSON plan with this exact structure (no markdown, no explanations, ju
 
 Use 5-7 exercises per day. Address stalled lifts with variations. Be specific and intelligent.`;
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/generate-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 2000,
-          messages: [{ role: "user", content: userPrompt }],
-        }),
+        body: JSON.stringify({ prompt: userPrompt }),
       });
 
-      if (!response.ok) throw new Error(`API returned ${response.status}`);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          throw new Error("Daily AI plan limit reached. Try again tomorrow!");
+        }
+        throw new Error(errData.error || `Server returned ${response.status}`);
+      }
       const data = await response.json();
-      const textBlock = data.content?.find(b => b.type === "text");
-      if (!textBlock) throw new Error("No text in response");
+      if (!data.text) throw new Error("No text in response");
 
       // Strip any markdown fences and parse
-      const cleaned = textBlock.text.replace(/```json|```/g, "").trim();
+      const cleaned = data.text.replace(/```json|```/g, "").trim();
       const plan = JSON.parse(cleaned);
 
       // Validate structure
@@ -641,13 +867,16 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
 
   // ─── ACTIVE PROGRAM FUNCTIONS ────────────────────────────────────────────────
   // Adopt a split as the active program at a given frequency.
-  function adoptSplitAsProgram(splitName, frequency) {
+  // mode: "repeat" — same exercises every cycle (default)
+  //       "rotate" — cycle through A/B/C variations per pattern
+  function adoptSplitAsProgram(splitName, frequency, mode = "repeat") {
     const split = SPLITS[splitName];
-    const days = buildWeekSchedule(split.days, frequency);
+    const days = buildWeekSchedule(split.patterns, frequency, mode);
     setActiveProgram({
       source: "split",
       splitName,
       frequency,
+      mode,
       color: split.color,
       days: days.map(d => ({ name: d.displayName, tag: d.tag, exercises: d.exercises, scheduledDay: d.scheduledDay })),
       startDate: new Date().toISOString(),
@@ -700,10 +929,14 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
     if (existingLog) {
       const workout = workouts.find(w => w.id === existingLog.workoutId);
       if (workout) {
-        const exercises = workout.exercises.map(e => ({
-          ...e,
-          last: findLastPerformanceExcluding(e.name, workout.id),
-        }));
+        const exercises = workout.exercises.map(e => {
+          const recent = findRecentSessionsExcluding(e.name, workout.id, 3);
+          return {
+            ...e,
+            last: recent[0] || null,
+            recent,
+          };
+        });
         setCurrent({ name: workout.name, tag: workout.tag, exercises, editingId: workout.id });
         setActiveSlot({ weekIndex, dayIndex });
         setTab("log");
@@ -735,6 +968,27 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
       if (best) return best;
     }
     return null;
+  }
+
+  // Recent sessions excluding a specific workout id (used when editing).
+  function findRecentSessionsExcluding(exerciseName, excludeId, n = 3) {
+    const sessions = [];
+    for (const w of workouts) {
+      if (w.id === excludeId) continue;
+      const ex = w.exercises.find(e => e.name === exerciseName);
+      if (!ex) continue;
+      let best = null;
+      for (const s of ex.sets) {
+        const wt = parseFloat(s.weight) || 0, rp = parseFloat(s.reps) || 0;
+        if (wt === 0 && rp === 0) continue;
+        if (!best || wt > best.weight || (wt === best.weight && rp > best.reps)) {
+          best = { weight: wt, reps: rp, date: w.date };
+        }
+      }
+      if (best) sessions.push(best);
+      if (sessions.length >= n) break;
+    }
+    return sessions;
   }
 
   // Manually toggle a day's completion status without logging a full workout.
@@ -870,7 +1124,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
   function SplitDetail({ name }) {
     const split = SPLITS[name];
     const freq = getFreq(name);
-    const schedule = buildWeekSchedule(split.days, freq);
+    const schedule = buildWeekSchedule(split.patterns, freq, "repeat");
     return (
       <>
         <button style={{...S.ghostBtn,marginBottom:16,padding:"7px 14px",fontSize:12}} onClick={()=>setSelectedSplit(null)}>← All Splits</button>
@@ -901,7 +1155,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
               ? "Very high frequency. Make sure you're sleeping and eating enough to recover."
               : freq>=4
               ? "Great balance of frequency and recovery. Each muscle gets hit multiple times per week."
-              : `${freq} sessions/week. ${split.days.length > freq ? `Rotating through ${split.days.length} workout types.` : "One cycle through all workout types."}`
+              : `${freq} sessions/week. ${split.patterns.length > freq ? `Rotating through ${split.patterns.length} workout types.` : "One cycle through all workout types."}`
             }
           </div>
         </div>
@@ -924,7 +1178,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
             marginBottom:18,
             boxShadow:`0 4px 20px ${split.color}33`,
           }}
-          onClick={()=>adoptSplitAsProgram(name, freq)}
+          onClick={()=>setAdoptModal({ splitName: name, frequency: freq, splitColor: split.color, splitPatterns: split.patterns })}
         >
           📅 Start This Program ({freq===7?"Daily":`${freq}x/wk`})
         </button>
@@ -1001,7 +1255,12 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:lastSession?10:16}}>
                 <div>
                   <div style={{fontWeight:800,fontSize:18,letterSpacing:1}}>{current.name||"Today's Workout"}</div>
-                  {current.tag&&<span style={S.tag(current.tag)}>{current.tag}</span>}
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginTop:3}}>
+                    {current.tag&&<span style={S.tag(current.tag)}>{current.tag}</span>}
+                    <span style={{fontSize:10,color:"#3a5a3a",letterSpacing:1,fontWeight:700}} title="Your workout is auto-saved. Close the app and come back anytime within 24 hours.">
+                      ● AUTO-SAVED
+                    </span>
+                  </div>
                 </div>
                 <button style={S.ghostBtn} onClick={()=>{setCurrent({name:"",exercises:[],tag:null});setActiveSlot(null);}}>Clear</button>
               </div>
@@ -1072,20 +1331,44 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                 return (
                 <div key={ei} style={S.exCard}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-                    <div>
+                    <div style={{flex:1,minWidth:0}}>
                       <div style={{fontSize:13,fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>{ex.name}</div>
                       {last ? (
-                        <div style={{fontSize:11,color:"#666",marginTop:3,letterSpacing:0.5}}>
-                          Last: <span style={{color:"#ff6b35",fontWeight:700}}>{last.weight} lbs × {last.reps} reps</span>
-                          <span style={{color:"#333",marginLeft:6}}>· {formatDate(last.date)}</span>
-                        </div>
+                        <>
+                          <div style={{fontSize:11,color:"#666",marginTop:3,letterSpacing:0.5}}>
+                            Last: <span style={{color:"#ff6b35",fontWeight:700}}>{last.weight} lbs × {last.reps} reps</span>
+                            <span style={{color:"#333",marginLeft:6}}>· {formatDate(last.date)}</span>
+                          </div>
+                          {/* Show recent trend if there are 2+ sessions */}
+                          {ex.recent && ex.recent.length > 1 && (
+                            <div style={{display:"flex",alignItems:"center",gap:6,marginTop:5,flexWrap:"wrap"}}>
+                              <span style={{fontSize:9,color:"#444",letterSpacing:1,textTransform:"uppercase",fontWeight:700}}>Trend</span>
+                              {[...ex.recent].reverse().map((s, idx) => {
+                                const prevIdx = idx > 0 ? idx - 1 : null;
+                                const prev = prevIdx !== null ? [...ex.recent].reverse()[prevIdx] : null;
+                                const delta = prev ? (s.weight * s.reps) - (prev.weight * prev.reps) : 0;
+                                const trendColor = !prev ? "#666" : delta > 0 ? "#55efc4" : delta < 0 ? "#ff7675" : "#888";
+                                return (
+                                  <span key={idx} style={{
+                                    display:"inline-flex",alignItems:"center",gap:3,
+                                    background:"#1a1a28",borderRadius:5,padding:"2px 7px",
+                                    fontSize:10,fontWeight:700,color:trendColor,
+                                  }}>
+                                    {s.weight}×{s.reps}
+                                  </span>
+                                );
+                              })}
+                              <span style={{fontSize:9,color:"#333"}}>oldest → newest</span>
+                            </div>
+                          )}
+                        </>
                       ) : (
                         <div style={{fontSize:11,color:"#3a3a4a",marginTop:3,letterSpacing:0.5,fontStyle:"italic"}}>
                           First time — set your baseline!
                         </div>
                       )}
                     </div>
-                    <button style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:15}} onClick={()=>removeExercise(ei)}>✕</button>
+                    <button style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:15,marginLeft:8,flexShrink:0}} onClick={()=>removeExercise(ei)}>✕</button>
                   </div>
 
                   {/* Progression quick-fill buttons (only show if there's a last performance) */}
@@ -1114,19 +1397,41 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                     </div>
                   )}
 
-                  <div style={{display:"grid",gridTemplateColumns:"28px 1fr 10px 1fr 28px 24px",gap:6,alignItems:"center",marginBottom:4}}>
+                  <div style={{display:"grid",gridTemplateColumns:"28px 1fr 10px 1fr 28px 32px",gap:6,alignItems:"center",marginBottom:4}}>
                     <span style={{fontSize:9,color:"#555",fontWeight:700}}>SET</span>
                     <span style={{fontSize:9,color:"#555",fontWeight:700,textAlign:"center"}}>REPS</span><span/>
                     <span style={{fontSize:9,color:"#555",fontWeight:700,textAlign:"center"}}>LBS</span><span/><span/>
                   </div>
                   {ex.sets.map((set,si)=>(
-                    <div key={si} style={{display:"grid",gridTemplateColumns:"28px 1fr 10px 1fr 28px 24px",gap:6,alignItems:"center",marginBottom:6}}>
+                    <div key={si} style={{display:"grid",gridTemplateColumns:"28px 1fr 10px 1fr 28px 32px",gap:6,alignItems:"center",marginBottom:6}}>
                       <span style={{fontSize:11,color:"#555",fontWeight:700}}>{si+1}</span>
                       <input style={S.input} type="number" placeholder={placeholderReps} value={set.reps} onChange={e=>updateSet(ei,si,"reps",e.target.value)}/>
                       <span style={{textAlign:"center",color:"#2a2a3e",fontSize:12}}>×</span>
                       <input style={S.input} type="number" placeholder={placeholderWeight} value={set.weight} onChange={e=>updateSet(ei,si,"weight",e.target.value)}/>
                       <span style={{fontSize:10,color:"#555"}}>lbs</span>
-                      {ex.sets.length>1&&<button style={{background:"none",border:"none",color:"#333",cursor:"pointer",fontSize:14}} onClick={()=>removeSet(ei,si)}>−</button>}
+                      {ex.sets.length > 1 ? (
+                        <button
+                          style={{
+                            background: "#2a1a1e",
+                            border: "1px solid #4a2a30",
+                            borderRadius: 6,
+                            color: "#ff6677",
+                            cursor: "pointer",
+                            fontSize: 14,
+                            height: 28,
+                            width: 28,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: 0,
+                            fontFamily: "inherit",
+                            transition: "all 0.12s",
+                          }}
+                          onClick={()=>removeSet(ei,si)}
+                          aria-label={`Remove set ${si+1}`}
+                          title="Remove this set"
+                        >🗑</button>
+                      ) : <span/>}
                     </div>
                   ))}
                   <button style={{...S.smBtn,marginTop:4}} onClick={()=>addSet(ei)}>+ Set</button>
@@ -1641,7 +1946,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                 ✨ Generate My Plan
               </button>
               <div style={{color:"#333",fontSize:11,textAlign:"center",marginTop:12,letterSpacing:1}}>
-                Powered by Claude · Plans are personalized to your history
+                Powered by Claude · Up to 10 plans per day
               </div>
             </>
           )}
@@ -1757,7 +2062,130 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
           <button style={{...S.ghostBtn,width:"100%",marginTop:8}} onClick={()=>{setDraft(profile||{});setOnboarding(true);}}>⚙ Update Profile</button>
         </div>
       )}
+
+      {/* ─── ADOPTION MODAL ─────────────────────────────────────────────────── */}
+      {adoptModal && (
+        <AdoptModal
+          modal={adoptModal}
+          onClose={()=>setAdoptModal(null)}
+          onConfirm={(mode)=>{
+            adoptSplitAsProgram(adoptModal.splitName, adoptModal.frequency, mode);
+            setAdoptModal(null);
+          }}
+          S={S}
+        />
+      )}
     </div>
+  );
+}
+
+// ─── ADOPT PROGRAM MODAL ─────────────────────────────────────────────────────
+function AdoptModal({ modal, onClose, onConfirm, S }) {
+  const [mode, setMode] = useState("repeat");
+  const { splitName, frequency, splitColor, splitPatterns } = modal;
+
+  // Check if any pattern has more than 1 variation — if not, rotate is meaningless
+  const hasVariations = splitPatterns.some(p => p.variations.length > 1);
+
+  // Preview the resulting week
+  const preview = buildWeekSchedule(splitPatterns, frequency, mode);
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"#000d",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+      <div style={{
+        background:"#111118",borderRadius:"20px 20px 0 0",padding:24,width:"100%",maxWidth:520,
+        maxHeight:"90vh",overflowY:"auto",boxSizing:"border-box",
+      }}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+          <div>
+            <div style={{color:splitColor,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",fontSize:10,marginBottom:4}}>
+              Start Program
+            </div>
+            <div style={{fontWeight:800,fontSize:20,lineHeight:1.2}}>{splitName}</div>
+            <div style={{color:"#666",fontSize:12,marginTop:3}}>{frequency===7?"Daily":`${frequency}x per week`}</div>
+          </div>
+          <button style={{background:"none",border:"none",color:"#555",cursor:"pointer",fontSize:18,padding:"2px 8px"}} onClick={onClose}>✕</button>
+        </div>
+
+        {hasVariations && (
+          <>
+            <div style={{...S.label,marginTop:24,marginBottom:10}}>How should the week be structured?</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:18}}>
+              <ModeOption
+                selected={mode==="repeat"}
+                color={splitColor}
+                title="Repeat Exact Same"
+                desc={`Use the same exercises every session. ${splitPatterns.length > 1 ? `${splitPatterns.map(p=>p.name).join(", ")} alternate, but each repeats identically.` : "Same workout, every time."} Progress carries across all days.`}
+                onClick={()=>setMode("repeat")}
+              />
+              <ModeOption
+                selected={mode==="rotate"}
+                color={splitColor}
+                title="Rotate with A/B/C Variations"
+                desc={`Different exercises each cycle. ${splitPatterns[0].variations.length} variations${splitPatterns[0].variations.length===3?" (A, B, C)":""} hit the same movement patterns differently for variety.`}
+                onClick={()=>setMode("rotate")}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Preview */}
+        <div style={{...S.label,marginBottom:10}}>Preview · Week 1</div>
+        <div style={{background:"#0e0e18",border:"1px solid #1e1e2e",borderRadius:10,padding:12,marginBottom:18}}>
+          {preview.map((day, i) => (
+            <div key={i} style={{
+              padding:"6px 0",borderBottom: i<preview.length-1 ? "1px solid #1a1a28" : "none",
+            }}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:1,minWidth:36}}>{day.scheduledDay.slice(0,3).toUpperCase()}</span>
+                  <span style={{fontSize:13,color:"#ddd",fontWeight:600}}>{day.displayName}</span>
+                </div>
+                <span style={{fontSize:10,color:TAG_COLORS[day.tag]||"#666",fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>{day.tag}</span>
+              </div>
+              {mode === "rotate" && (
+                <div style={{fontSize:10,color:"#444",marginTop:3,marginLeft:44,lineHeight:1.4}}>
+                  {day.exercises.slice(0,3).join(" · ")}{day.exercises.length>3?` · +${day.exercises.length-3}`:""}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button
+          style={{
+            width:"100%",
+            background:`linear-gradient(90deg,${splitColor},${splitColor}cc)`,
+            border:"none",borderRadius:10,padding:"13px",color:"#0a0a0f",
+            fontFamily:"inherit",fontSize:13,fontWeight:800,letterSpacing:2,textTransform:"uppercase",
+            cursor:"pointer",boxShadow:`0 4px 20px ${splitColor}33`,
+          }}
+          onClick={()=>onConfirm(mode)}
+        >
+          📅 Confirm & Start
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ModeOption({ selected, color, title, desc, onClick }) {
+  return (
+    <button
+      style={{
+        background: selected ? `${color}18` : "#1a1a28",
+        border: selected ? `1.5px solid ${color}` : "1px solid #2a2a3e",
+        borderRadius:10,padding:"12px 14px",textAlign:"left",cursor:"pointer",
+        fontFamily:"inherit",transition:"all 0.15s",
+      }}
+      onClick={onClick}
+    >
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+        <div style={{fontWeight:700,fontSize:13,color:selected?color:"#ddd"}}>{title}</div>
+        {selected && <div style={{color,fontSize:14}}>✓</div>}
+      </div>
+      <div style={{color:"#666",fontSize:11,lineHeight:1.5}}>{desc}</div>
+    </button>
   );
 }
 
