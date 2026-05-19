@@ -1,22 +1,34 @@
 # Anvil
 
-A workout tracker with AI-generated programs. Built with React + Vite + PWA.
+A workout tracker with AI-generated programs, social-ready cloud sync, and user accounts. Built with React + Vite + PWA + Supabase.
 
 ## Quick Start
 
 You need [Node.js](https://nodejs.org/) installed (version 18 or later). Check by running `node --version` in your terminal.
 
-### 1. Install dependencies
+### 1. Set up environment variables
 
-Open a terminal inside this folder and run:
+Copy `.env.example` to a new file called `.env.local`:
+
+```bash
+copy .env.example .env.local    # Windows
+cp .env.example .env.local      # Mac/Linux
+```
+
+Open `.env.local` and fill in:
+- `VITE_SUPABASE_URL` — your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` — your Supabase anon public key
+- `ANTHROPIC_API_KEY` — your Anthropic API key (only used in production by the AI Coach serverless function)
+
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-This downloads everything the project needs. It will take 1–2 minutes the first time and create a `node_modules` folder.
+This downloads everything the project needs. It will take 1–2 minutes the first time.
 
-### 2. Run it locally
+### 3. Run it locally
 
 ```bash
 npm run dev

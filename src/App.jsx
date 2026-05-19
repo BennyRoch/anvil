@@ -1,4 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { supabase, isSupabaseConfigured } from "./supabase";
+import AuthScreen from "./AuthScreen";
+import * as DB from "./data";
 
 // ─── EXERCISE LIBRARY ────────────────────────────────────────────────────────
 const EXERCISES = {
@@ -463,36 +466,37 @@ function progBtn(color) {
   };
 }
 
-export default function App() {
+// AnvilApp — the main application, rendered only when user is authenticated.
+function AnvilApp({ session, onLogout }) {
   const [tab, setTab] = useState("log");
-  const [workouts, setWorkouts] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("wt_workouts2")||"[]"); } catch { return []; }
-  });
-  const [profile, setProfile] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("wt_profile2")||"null"); } catch { return null; }
-  });
+  // Data loaded from Supabase on mount; empty until then
+  const [workouts, setWorkouts] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [activeProgram, setActiveProgram] = useState(null);
+  const [programLogs, setProgramLogs] = useState({});
+  const [dataLoaded, setDataLoaded] = useState(false);
+  // Tracks whether the next save should fire — we don't want to overwrite cloud
+  // data with an empty initial state before load completes.
+  const initialLoadDone = useRef(false);
+
+  // In-progress workout draft (stays in localStorage — device-specific, expires fast)
   const [current, setCurrent] = useState(() => {
-    // Attempt to restore an in-progress workout from a previous session.
-    // Drafts expire after 24 hours to avoid restoring stale workouts.
     try {
       const raw = localStorage.getItem("wt_currentDraft");
       if (!raw) return { name:"", exercises:[], tag:null };
       const draft = JSON.parse(raw);
       const age = Date.now() - (draft.savedAt || 0);
       if (age > 24 * 60 * 60 * 1000) {
-        // Expired — discard
         localStorage.removeItem("wt_currentDraft");
         return { name:"", exercises:[], tag:null };
       }
-      // Strip savedAt before restoring (it's metadata, not state)
       const { savedAt, ...state } = draft;
       return state;
     } catch {
       return { name:"", exercises:[], tag:null };
     }
   });
-  // Also restore the active program slot if user was mid-workout against the schedule.
-  // Only meaningful if a workout draft exists — otherwise clear it.
+  // Active program slot (also device-specific draft state)
   const [activeSlot, setActiveSlot] = useState(() => {
     try {
       const hasDraft = !!localStorage.getItem("wt_currentDraft");
@@ -504,41 +508,70 @@ export default function App() {
     } catch { return null; }
   });
   const [addEx, setAddEx] = useState({ open:false, category:"All", search:"" });
-  // Plans navigation: null = list, string = split detail
   const [selectedSplit, setSelectedSplit] = useState(null);
-  // Per-split frequency selections (persist across navigation)
   const [splitFreqs, setSplitFreqs] = useState({});
   const [onboarding, setOnboarding] = useState(false);
   const [draft, setDraft] = useState({ experience:"", name:"", goal:"" });
-  // Delete confirmation: id of workout pending delete, or "all" for clear-all
   const [confirmDelete, setConfirmDelete] = useState(null);
-  // Adoption modal: { splitName, frequency } when picking how to schedule
   const [adoptModal, setAdoptModal] = useState(null);
+  // Migration prompt state — shown once if user has local data to migrate
+  const [migrationPrompt, setMigrationPrompt] = useState(false);
+  const [migrating, setMigrating] = useState(false);
 
-  // ─── ACTIVE PROGRAM STATE ────────────────────────────────────────────────────
-  // activeProgram: { source: "split"|"ai"|"custom", splitName?, frequency?, days:[{name,tag,exercises}], startDate }
-  const [activeProgram, setActiveProgram] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("wt_activeProgram")||"null"); } catch { return null; }
-  });
-  // programLogs: { "weekIndex-dayIndex": { workoutId, completedAt } }
-  // Maps each scheduled slot to the workout that fulfilled it.
-  const [programLogs, setProgramLogs] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("wt_programLogs")||"{}"); } catch { return {}; }
-  });
-  // Which week the user is currently viewing in the Program tab.
-  // null = current week (auto-calculated from startDate).
+  // ─── LOAD ALL DATA FROM SUPABASE ON MOUNT ────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const [p, ws, ap] = await Promise.all([
+          DB.loadProfile(),
+          DB.loadWorkouts(),
+          DB.loadActiveProgram(),
+        ]);
+        if (cancelled) return;
+        setProfile(p);
+        setWorkouts(ws);
+        setActiveProgram(ap.program);
+        setProgramLogs(ap.logs);
+        setDataLoaded(true);
+        initialLoadDone.current = true;
+
+        // After load, check if there's local data worth migrating.
+        if (DB.hasLocalDataToMigrate()) {
+          setMigrationPrompt(true);
+        } else if (!p) {
+          // No profile? Show onboarding.
+          setOnboarding(true);
+        }
+      } catch (err) {
+        console.error("Failed to load cloud data:", err);
+        setDataLoaded(true);
+        initialLoadDone.current = true;
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  // ─── VIEWED WEEK (PROGRAM TAB) ───────────────────────────────────────────────
   const [viewedWeek, setViewedWeek] = useState(null);
-  // activeSlot is declared earlier (along with `current`) so it can be restored from localStorage
 
+  // ─── SAVE TO SUPABASE WHEN STATE CHANGES ─────────────────────────────────────
+  // Profile
   useEffect(() => {
-    if (activeProgram) try { localStorage.setItem("wt_activeProgram", JSON.stringify(activeProgram)); } catch {}
-    else try { localStorage.removeItem("wt_activeProgram"); } catch {}
-  }, [activeProgram]);
-  useEffect(() => {
-    try { localStorage.setItem("wt_programLogs", JSON.stringify(programLogs)); } catch {}
-  }, [programLogs]);
+    if (!initialLoadDone.current || !profile) return;
+    DB.saveProfile(profile).catch(e => console.error("saveProfile failed:", e));
+  }, [profile]);
 
-  // ─── AI COACH STATE ──────────────────────────────────────────────────────────
+  // Active program + logs (saved together)
+  useEffect(() => {
+    if (!initialLoadDone.current) return;
+    DB.saveActiveProgram(activeProgram, programLogs).catch(e =>
+      console.error("saveActiveProgram failed:", e)
+    );
+  }, [activeProgram, programLogs]);
+
+  // ─── AI COACH STATE (still local-only; small + ephemeral) ────────────────────
   const [aiState, setAiState] = useState(() => {
     try { return JSON.parse(localStorage.getItem("wt_aiPlan") || "null"); } catch { return null; }
   });
@@ -556,14 +589,7 @@ export default function App() {
     if (aiState) try { localStorage.setItem("wt_aiPlan", JSON.stringify(aiState)); } catch {}
   }, [aiState]);
 
-  useEffect(() => { if (!profile) setOnboarding(true); }, []);
-  useEffect(() => { try { localStorage.setItem("wt_workouts2", JSON.stringify(workouts)); } catch {} }, [workouts]);
-  useEffect(() => { if (profile) try { localStorage.setItem("wt_profile2", JSON.stringify(profile)); } catch {} }, [profile]);
-
-  // ─── AUTO-SAVE IN-PROGRESS WORKOUT ───────────────────────────────────────────
-  // Save the current workout to localStorage whenever it changes, so if the
-  // app is killed mid-workout (iOS memory pressure, browser crash, accidental
-  // close), the user can resume right where they left off.
+  // ─── AUTO-SAVE IN-PROGRESS WORKOUT (still local — device specific) ───────────
   useEffect(() => {
     try {
       if (current.exercises.length > 0) {
@@ -572,13 +598,11 @@ export default function App() {
           savedAt: Date.now(),
         }));
       } else {
-        // Empty workout = nothing to save
         localStorage.removeItem("wt_currentDraft");
       }
     } catch {}
   }, [current]);
 
-  // Persist activeSlot so program-linked workouts also survive a reload
   useEffect(() => {
     try {
       if (activeSlot) localStorage.setItem("wt_activeSlot", JSON.stringify(activeSlot));
@@ -846,9 +870,16 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
   }
 
   // ─── DELETE WORKOUT FUNCTIONS ────────────────────────────────────────────────
-  function deleteWorkout(id) {
+  async function deleteWorkout(id) {
+    setConfirmDelete(null);
+    try {
+      await DB.deleteWorkoutById(id);
+    } catch (err) {
+      console.error("Cloud delete failed:", err);
+      alert("Could not delete the workout. Check your connection and try again.");
+      return;
+    }
     setWorkouts(w => w.filter(workout => workout.id !== id));
-    // Unlink any program slots referencing this workout
     setProgramLogs(prev => {
       const next = { ...prev };
       for (const key of Object.keys(next)) {
@@ -856,13 +887,19 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
       }
       return next;
     });
-    setConfirmDelete(null);
   }
 
-  function clearAllWorkouts() {
+  async function clearAllWorkouts() {
+    setConfirmDelete(null);
+    try {
+      await DB.deleteAllWorkouts();
+    } catch (err) {
+      console.error("Cloud delete-all failed:", err);
+      alert("Could not clear workouts. Check your connection and try again.");
+      return;
+    }
     setWorkouts([]);
     setProgramLogs({});
-    setConfirmDelete(null);
   }
 
   // ─── ACTIVE PROGRAM FUNCTIONS ────────────────────────────────────────────────
@@ -992,31 +1029,37 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
   }
 
   // Manually toggle a day's completion status without logging a full workout.
-  function toggleSlotComplete(weekIndex, dayIndex) {
+  async function toggleSlotComplete(weekIndex, dayIndex) {
     const slotKey = `${weekIndex}-${dayIndex}`;
-    setProgramLogs(prev => {
-      const next = { ...prev };
-      if (next[slotKey]) {
-        // If linked to a real workout, also delete that workout
-        if (next[slotKey].workoutId) {
-          setWorkouts(ws => ws.filter(w => w.id !== next[slotKey].workoutId));
+    const existing = programLogs[slotKey];
+    if (existing) {
+      // If linked to a real workout, also delete that workout from the cloud
+      if (existing.workoutId) {
+        try { await DB.deleteWorkoutById(existing.workoutId); } catch (err) {
+          console.error("Failed to delete linked workout:", err);
         }
-        delete next[slotKey];
-      } else {
-        next[slotKey] = { workoutId: null, completedAt: new Date().toISOString(), manual: true };
+        setWorkouts(ws => ws.filter(w => w.id !== existing.workoutId));
       }
-      return next;
-    });
+      setProgramLogs(prev => {
+        const next = { ...prev };
+        delete next[slotKey];
+        return next;
+      });
+    } else {
+      setProgramLogs(prev => ({
+        ...prev,
+        [slotKey]: { workoutId: null, completedAt: new Date().toISOString(), manual: true },
+      }));
+    }
   }
 
-  function finishWorkout() {
+  async function finishWorkout() {
     if (!current.exercises.length) return;
     // Strip the `last` reference field — it's only for the live UI, not persistence
     const cleanExercises = current.exercises.map(({ name, sets }) => ({ name, sets }));
     const editingId = current.editingId;
-    const id = editingId || Date.now();
     const entry = {
-      id,
+      id: editingId, // undefined for new, UUID for edit
       date: editingId ? (workouts.find(w => w.id === editingId)?.date || new Date().toISOString()) : new Date().toISOString(),
       name: current.name || "Workout",
       tag: current.tag,
@@ -1025,19 +1068,27 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
       totalVolume: cleanExercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(parseFloat(s.weight)||0)*(parseFloat(s.reps)||0),0),0),
     };
 
-    if (editingId) {
-      // Update existing workout
-      setWorkouts(ws => ws.map(w => w.id === editingId ? entry : w));
-    } else {
-      setWorkouts(w => [entry, ...w]);
+    let saved;
+    try {
+      saved = await DB.saveWorkout(entry);
+    } catch (err) {
+      console.error("Failed to save workout to cloud:", err);
+      alert("Could not save your workout. Check your internet connection and try again.");
+      return;
     }
 
-    // If this was logged against a program slot, link it
+    if (editingId) {
+      setWorkouts(ws => ws.map(w => w.id === editingId ? saved : w));
+    } else {
+      setWorkouts(w => [saved, ...w]);
+    }
+
+    // If this was logged against a program slot, link it (use the cloud-assigned ID)
     if (activeSlot) {
       const slotKey = `${activeSlot.weekIndex}-${activeSlot.dayIndex}`;
       setProgramLogs(prev => ({
         ...prev,
-        [slotKey]: { workoutId: id, completedAt: new Date().toISOString(), manual: false },
+        [slotKey]: { workoutId: saved.id, completedAt: new Date().toISOString(), manual: false },
       }));
       setCurrent({ name:"", exercises:[], tag:null });
       setActiveSlot(null);
@@ -1092,6 +1143,15 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
     selBtn:(sel)=>({ flex:1, padding:"10px 6px", border:sel?"2px solid #ff6b35":"1px solid #2a2a3e", borderRadius:8, background:sel?"#ff6b3520":"#111118", color:sel?"#ff6b35":"#666", fontFamily:"inherit", fontSize:12, fontWeight:700, letterSpacing:1, textTransform:"uppercase", cursor:"pointer" }),
     freqChip:(sel,color)=>({ padding:"7px 0", minWidth:52, border:sel?`2px solid ${color}`:"1px solid #2a2a3e", borderRadius:8, background:sel?`${color}18`:"#111118", color:sel?color:"#555", fontFamily:"inherit", fontSize:12, fontWeight:800, letterSpacing:1, textTransform:"uppercase", cursor:"pointer", textAlign:"center", transition:"all 0.15s" }),
   };
+
+  // ─── LOADING (data still syncing from cloud) ─────────────────────────────────
+  if (!dataLoaded) return (
+    <div style={{minHeight:"100vh",background:"#0a0a0f",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"'Barlow Condensed', sans-serif"}}>
+      <div style={{fontSize:32,marginBottom:14,animation:"pulse 1.5s ease-in-out infinite"}}>🔨</div>
+      <div style={{color:"#ff6b35",fontSize:13,fontWeight:700,letterSpacing:2,textTransform:"uppercase"}}>Loading your data...</div>
+      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
+    </div>
+  );
 
   // ─── ONBOARDING ──────────────────────────────────────────────────────────────
   if (onboarding) return (
@@ -2060,6 +2120,116 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
           )}
           {workouts.length===0&&<div style={S.emptyState}><div style={{fontSize:36,marginBottom:10}}>📊</div><div>Log workouts to see your stats</div></div>}
           <button style={{...S.ghostBtn,width:"100%",marginTop:8}} onClick={()=>{setDraft(profile||{});setOnboarding(true);}}>⚙ Update Profile</button>
+
+          {/* Account section */}
+          <div style={{marginTop:32,paddingTop:18,borderTop:"1px solid #1a1a28"}}>
+            <div style={{...S.label,marginBottom:10}}>Account</div>
+            <div style={{...S.card,marginBottom:10}}>
+              <div style={{color:"#888",fontSize:11,letterSpacing:1,textTransform:"uppercase",fontWeight:700,marginBottom:6}}>
+                Signed in as
+              </div>
+              <div style={{color:"#f0ede8",fontSize:14,fontWeight:600,wordBreak:"break-all"}}>
+                {session?.user?.email}
+              </div>
+              <div style={{color:"#3a5a3a",fontSize:10,letterSpacing:1,marginTop:8,fontWeight:700}}>
+                ● SYNCED TO CLOUD
+              </div>
+            </div>
+            <button
+              style={{
+                width:"100%",
+                background:"transparent",
+                border:"1px solid #2a2a3e",
+                borderRadius:8,
+                padding:"10px 14px",
+                color:"#ff6677",
+                fontFamily:"inherit",
+                fontSize:12,
+                fontWeight:700,
+                letterSpacing:1,
+                textTransform:"uppercase",
+                cursor:"pointer",
+              }}
+              onClick={async () => {
+                if (!confirm("Log out? Your data stays safe in the cloud.")) return;
+                await supabase.auth.signOut();
+                onLogout?.();
+              }}
+            >
+              Log Out
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MIGRATION PROMPT ────────────────────────────────────────────────── */}
+      {migrationPrompt && (
+        <div style={{position:"fixed",inset:0,background:"#000d",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <div style={{background:"#111118",border:"1px solid #2a2a3e",borderRadius:14,padding:24,maxWidth:380,width:"100%",boxSizing:"border-box"}}>
+            <div style={{fontSize:36,textAlign:"center",marginBottom:10}}>☁️</div>
+            <div style={{fontWeight:800,fontSize:16,letterSpacing:1,textTransform:"uppercase",textAlign:"center",marginBottom:10,color:"#ff6b35"}}>
+              Move Your Data to the Cloud?
+            </div>
+            <div style={{color:"#888",fontSize:13,lineHeight:1.6,marginBottom:18}}>
+              We found local workout data from before you signed up. Want to copy it to your account so it syncs across devices?
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              <button
+                style={{
+                  background:"linear-gradient(90deg,#ff6b35,#ff8c42)",
+                  border:"none",borderRadius:8,padding:"11px 14px",color:"#fff",
+                  fontFamily:"inherit",fontSize:13,fontWeight:800,letterSpacing:1,
+                  textTransform:"uppercase",cursor:migrating?"wait":"pointer",
+                  opacity:migrating?0.7:1,
+                }}
+                disabled={migrating}
+                onClick={async () => {
+                  setMigrating(true);
+                  try {
+                    const result = await DB.migrateLocalData();
+                    DB.clearMigratedLocalData();
+                    // Reload data from cloud
+                    const [p, ws, ap] = await Promise.all([
+                      DB.loadProfile(),
+                      DB.loadWorkouts(),
+                      DB.loadActiveProgram(),
+                    ]);
+                    setProfile(p);
+                    setWorkouts(ws);
+                    setActiveProgram(ap.program);
+                    setProgramLogs(ap.logs);
+                    setMigrationPrompt(false);
+                    if (!p) setOnboarding(true);
+                    alert(`Migrated ${result.workouts} workouts${result.profile?" + profile":""}${result.program?" + active program":""}. Your data is now in the cloud!`);
+                  } catch (err) {
+                    console.error("Migration failed:", err);
+                    alert("Migration failed. Your local data is still safe — try again or contact support.");
+                  } finally {
+                    setMigrating(false);
+                  }
+                }}
+              >
+                {migrating ? "Moving..." : "☁️ Move to Cloud"}
+              </button>
+              <button
+                style={{
+                  background:"transparent",border:"1px solid #2a2a3e",borderRadius:8,
+                  padding:"11px 14px",color:"#666",fontFamily:"inherit",fontSize:12,
+                  fontWeight:700,letterSpacing:1,textTransform:"uppercase",cursor:"pointer",
+                }}
+                disabled={migrating}
+                onClick={() => {
+                  if (confirm("Discard the local data? It will be deleted from this device.")) {
+                    DB.clearMigratedLocalData();
+                    setMigrationPrompt(false);
+                    if (!profile) setOnboarding(true);
+                  }
+                }}
+              >
+                Discard Local Data
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -2207,4 +2377,64 @@ function SplitCard({ name, split, freq, onSelect, S, dimmed }) {
       </div>
     </div>
   );
+}
+
+
+// ─── TOP-LEVEL APP: AUTH WRAPPER ─────────────────────────────────────────────
+// Listens for auth state changes from Supabase and renders the right screen.
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    // If Supabase isn't configured, show a setup screen
+    if (!isSupabaseConfigured) {
+      setCheckingAuth(false);
+      return;
+    }
+
+    // Get current session on mount
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setCheckingAuth(false);
+    });
+
+    // Listen for sign-in / sign-out events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Setup error: Supabase env vars not set
+  if (!isSupabaseConfigured) {
+    return (
+      <div style={{minHeight:"100vh",background:"#0a0a0f",color:"#f0ede8",fontFamily:"'Barlow Condensed', sans-serif",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:28,textAlign:"center"}}>
+        <div style={{fontSize:42,marginBottom:14}}>⚠️</div>
+        <div style={{fontSize:18,fontWeight:800,letterSpacing:1,color:"#ff6b35",marginBottom:10}}>Configuration Required</div>
+        <div style={{color:"#888",fontSize:13,maxWidth:400,lineHeight:1.6}}>
+          Supabase environment variables are not set. Add <code style={{background:"#1a1a28",padding:"2px 6px",borderRadius:4,color:"#fdcb6e"}}>VITE_SUPABASE_URL</code> and <code style={{background:"#1a1a28",padding:"2px 6px",borderRadius:4,color:"#fdcb6e"}}>VITE_SUPABASE_ANON_KEY</code> to your <code style={{background:"#1a1a28",padding:"2px 6px",borderRadius:4,color:"#fdcb6e"}}>.env.local</code> file (local) or Vercel environment variables (production), then restart the dev server.
+        </div>
+      </div>
+    );
+  }
+
+  // Checking auth state
+  if (checkingAuth) {
+    return (
+      <div style={{minHeight:"100vh",background:"#0a0a0f",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{color:"#ff6b35",fontSize:32,animation:"pulse 1.5s ease-in-out infinite"}}>🔨</div>
+        <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
+      </div>
+    );
+  }
+
+  // Not authenticated → show login/signup
+  if (!session) {
+    return <AuthScreen onAuthSuccess={(s) => setSession(s)} />;
+  }
+
+  // Authenticated → show the main app (key forces remount on session change)
+  return <AnvilApp key={session.user.id} session={session} onLogout={() => setSession(null)} />;
 }
