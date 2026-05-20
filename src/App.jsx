@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase, isSupabaseConfigured } from "./supabase";
 import AuthScreen from "./AuthScreen";
+import UsernameGate from "./UsernameGate";
+import ProfileScreen from "./ProfileScreen";
 import * as DB from "./data";
 
 // ─── EXERCISE LIBRARY ────────────────────────────────────────────────────────
@@ -2385,6 +2387,17 @@ function SplitCard({ name, split, freq, onSelect, S, dimmed }) {
 export default function App() {
   const [session, setSession] = useState(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  // Profile completeness gate: null = not yet checked, true/false once known.
+  const [hasUsername, setHasUsername] = useState(null);
+  // Hash route, e.g. "" or "#/u/rogerb"
+  const [route, setRoute] = useState(typeof window !== "undefined" ? window.location.hash : "");
+
+  // Listen for hash changes so back/forward and profile links work
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
   useEffect(() => {
     // If Supabase isn't configured, show a setup screen
@@ -2402,10 +2415,24 @@ export default function App() {
     // Listen for sign-in / sign-out events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
+      // Reset username check on auth change so the new user gets re-evaluated
+      setHasUsername(null);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Whenever we have a session but haven't checked the username yet, check it.
+  useEffect(() => {
+    if (!session || hasUsername !== null) return;
+    let cancelled = false;
+    (async () => {
+      const profile = await DB.loadProfile();
+      if (cancelled) return;
+      setHasUsername(!!(profile && profile.username));
+    })();
+    return () => { cancelled = true; };
+  }, [session, hasUsername]);
 
   // Setup error: Supabase env vars not set
   if (!isSupabaseConfigured) {
@@ -2435,6 +2462,34 @@ export default function App() {
     return <AuthScreen onAuthSuccess={(s) => setSession(s)} />;
   }
 
-  // Authenticated → show the main app (key forces remount on session change)
+  // Authenticated but profile not yet checked → loading state
+  if (hasUsername === null) {
+    return (
+      <div style={{minHeight:"100vh",background:"#0a0a0f",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{color:"#ff6b35",fontSize:32,animation:"pulse 1.5s ease-in-out infinite"}}>🔨</div>
+        <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
+      </div>
+    );
+  }
+
+  // No username yet → block the app and force them to pick one
+  if (!hasUsername) {
+    return <UsernameGate session={session} onDone={() => setHasUsername(true)} />;
+  }
+
+  // Hash route: #/u/<username> → profile page (rendered above AnvilApp so it
+  // works whether or not AnvilApp has finished mounting)
+  const profileMatch = route.match(/^#\/u\/([A-Za-z0-9_]{3,20})$/);
+  if (profileMatch) {
+    return (
+      <ProfileScreen
+        username={profileMatch[1]}
+        currentUserId={session.user.id}
+        onBack={() => { window.location.hash = ""; }}
+      />
+    );
+  }
+
+  // Authenticated + has username + no special route → main app
   return <AnvilApp key={session.user.id} session={session} onLogout={() => setSession(null)} />;
 }

@@ -253,3 +253,86 @@ export function hasLocalDataToMigrate() {
     return !!(hasWorkouts || p || pr);
   } catch { return false; }
 }
+
+// ─── USERNAMES ───────────────────────────────────────────────────────────────
+// Check if a username is available (case-insensitive). Returns false for
+// invalid formats too, so the UI can treat "unavailable" uniformly.
+export async function isUsernameAvailable(username) {
+  if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) return false;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .ilike("username", username)
+    .maybeSingle();
+  if (error) { console.error("isUsernameAvailable error:", error); return false; }
+  return !data;
+}
+
+export async function setUsername(username) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase
+    .from("profiles")
+    .update({ username, updated_at: new Date().toISOString() })
+    .eq("id", user.id);
+  if (error) {
+    if (error.code === "23505") throw new Error("That username is taken");
+    throw error;
+  }
+}
+
+// ─── PUBLIC PROFILE LOOKUP ───────────────────────────────────────────────────
+export async function getProfileByUsername(username) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, display_name")
+    .ilike("username", username)
+    .maybeSingle();
+  if (error) { console.error("getProfileByUsername error:", error); return null; }
+  return data;
+}
+
+// ─── FOLLOWS ─────────────────────────────────────────────────────────────────
+export async function followUser(followeeId) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase
+    .from("follows")
+    .insert({ follower_id: user.id, followee_id: followeeId });
+  // 23505 = duplicate (already following); not actually an error from our POV
+  if (error && error.code !== "23505") throw error;
+}
+
+export async function unfollowUser(followeeId) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase
+    .from("follows")
+    .delete()
+    .eq("follower_id", user.id)
+    .eq("followee_id", followeeId);
+  if (error) throw error;
+}
+
+export async function getFollowCounts(userId) {
+  const [followersRes, followingRes] = await Promise.all([
+    supabase.from("follows").select("*", { count: "exact", head: true }).eq("followee_id", userId),
+    supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", userId),
+  ]);
+  return {
+    followers: followersRes.count || 0,
+    following: followingRes.count || 0,
+  };
+}
+
+export async function isFollowing(followeeId) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data } = await supabase
+    .from("follows")
+    .select("follower_id")
+    .eq("follower_id", user.id)
+    .eq("followee_id", followeeId)
+    .maybeSingle();
+  return !!data;
+}
