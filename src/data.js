@@ -336,3 +336,348 @@ export async function isFollowing(followeeId) {
     .maybeSingle();
   return !!data;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE 3: SOCIAL — posts, feed, likes, comments, discover
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── IMAGE COMPRESSION (client-side, no deps) ────────────────────────────────
+// Resizes large images to fit within MAX_DIM and re-encodes as JPEG at quality
+// steps until the result is ≤ MAX_BYTES. Returns a Blob ready for upload.
+const MAX_DIM = 1600;       // px — long edge cap
+const MAX_BYTES = 1024 * 1024; // 1 MB target
+
+async function compressImage(file) {
+  if (!file) return null;
+  // Read into an image element
+  const dataUrl = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error("Could not read image"));
+    r.readAsDataURL(file);
+  });
+  const img = await new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = () => rej(new Error("Could not decode image"));
+    i.src = dataUrl;
+  });
+  // Compute target dimensions (preserve aspect)
+  let { width, height } = img;
+  if (width > MAX_DIM || height > MAX_DIM) {
+    if (width >= height) {
+      height = Math.round(height * (MAX_DIM / width));
+      width = MAX_DIM;
+    } else {
+      width = Math.round(width * (MAX_DIM / height));
+      height = MAX_DIM;
+    }
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, width, height);
+  // Try decreasing JPEG quality until we fit
+  const qualities = [0.85, 0.75, 0.65, 0.55, 0.45];
+  for (const q of qualities) {
+    const blob = await new Promise(res => canvas.toBlob(res, "image/jpeg", q));
+    if (blob && blob.size <= MAX_BYTES) return blob;
+    if (q === qualities[qualities.length - 1]) return blob; // give up, use smallest
+  }
+  return null;
+}
+
+// Build a public URL for an image stored in the post-images bucket.
+export function postImageUrl(imagePath) {
+  if (!imagePath) return null;
+  const { data } = supabase.storage.from("post-images").getPublicUrl(imagePath);
+  return data?.publicUrl || null;
+}
+
+// ─── POSTS ───────────────────────────────────────────────────────────────────
+
+// Create a post from a workout. workout is the in-app shape (with totalSets/
+// totalVolume), imageFile is an optional File from <input type=file>.
+export async function createPost({ workout, caption, imageFile }) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  // Upload image first (if provided). We tolerate upload failure by warning
+  // the caller but still creating the post without the image.
+  let imagePath = null;
+  let imageWarning = null;
+  if (imageFile) {
+    try {
+      const blob = await compressImage(imageFile);
+      if (blob) {
+        const ext = "jpg";
+        const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("post-images")
+          .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+        if (upErr) { imageWarning = upErr.message; }
+        else { imagePath = path; }
+      }
+    } catch (err) {
+      console.error("Image compression failed:", err);
+      imageWarning = err.message || "Image upload failed";
+    }
+  }
+
+  // Strip in-memory-only fields from snapshot
+  const snapshot = {
+    name: workout.name,
+    tag: workout.tag,
+    date: workout.date,
+    exercises: workout.exercises,
+    totalSets: workout.totalSets,
+    totalVolume: workout.totalVolume,
+  };
+
+  const isUuid = typeof workout.id === "string" && workout.id.length === 36;
+  const row = {
+    user_id: user.id,
+    workout_id: isUuid ? workout.id : null,
+    workout_snapshot: snapshot,
+    caption: (caption || "").trim() || null,
+    image_path: imagePath,
+  };
+  const { data, error } = await supabase.from("posts").insert(row).select().single();
+  if (error) throw error;
+  return { post: data, imageWarning };
+}
+
+export async function deletePost(postId) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  // Read the image path so we can clean up storage afterward (best effort)
+  const { data: existing } = await supabase
+    .from("posts").select("image_path").eq("id", postId).maybeSingle();
+  const { error } = await supabase.from("posts").delete().eq("id", postId).eq("user_id", user.id);
+  if (error) throw error;
+  if (existing?.image_path) {
+    try { await supabase.storage.from("post-images").remove([existing.image_path]); }
+    catch (e) { console.warn("Storage cleanup failed:", e); }
+  }
+}
+
+// Hydrate post rows with author profile + like count + has-liked + comment count.
+async function hydratePosts(posts, currentUserId) {
+  if (!posts.length) return [];
+  const userIds = [...new Set(posts.map(p => p.user_id))];
+  const postIds = posts.map(p => p.id);
+
+  const [profilesRes, likeCountsRes, myLikesRes, commentCountsRes] = await Promise.all([
+    supabase.from("profiles").select("id, username, display_name").in("id", userIds),
+    supabase.from("post_likes").select("post_id").in("post_id", postIds),
+    currentUserId
+      ? supabase.from("post_likes").select("post_id").eq("user_id", currentUserId).in("post_id", postIds)
+      : Promise.resolve({ data: [] }),
+    supabase.from("post_comments").select("post_id").in("post_id", postIds),
+  ]);
+
+  const profileById = new Map((profilesRes.data || []).map(p => [p.id, p]));
+  const likeCount = new Map();
+  for (const r of (likeCountsRes.data || [])) likeCount.set(r.post_id, (likeCount.get(r.post_id) || 0) + 1);
+  const myLiked = new Set((myLikesRes.data || []).map(r => r.post_id));
+  const commentCount = new Map();
+  for (const r of (commentCountsRes.data || [])) commentCount.set(r.post_id, (commentCount.get(r.post_id) || 0) + 1);
+
+  return posts.map(p => ({
+    ...p,
+    author: profileById.get(p.user_id) || { id: p.user_id, username: null, display_name: null },
+    like_count: likeCount.get(p.id) || 0,
+    liked_by_me: myLiked.has(p.id),
+    comment_count: commentCount.get(p.id) || 0,
+    image_url: postImageUrl(p.image_path),
+  }));
+}
+
+// Feed: posts from people I follow + my own, newest first. Paginated by
+// passing the created_at of the last item as `before`.
+export async function listFeed({ limit = 20, before = null } = {}) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  // Who do I follow?
+  const { data: follows, error: fErr } = await supabase
+    .from("follows").select("followee_id").eq("follower_id", user.id);
+  if (fErr) { console.error(fErr); return []; }
+  const ids = [...(follows || []).map(f => f.followee_id), user.id];
+
+  let q = supabase.from("posts")
+    .select("*")
+    .in("user_id", ids)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (before) q = q.lt("created_at", before);
+
+  const { data, error } = await q;
+  if (error) { console.error(error); return []; }
+  return await hydratePosts(data || [], user.id);
+}
+
+// List posts authored by one user (newest first). Used on profile pages.
+export async function listPostsByUser(userId, { limit = 20, before = null } = {}) {
+  const { data: { user } } = await supabase.auth.getUser();
+  const currentId = user?.id || null;
+  let q = supabase.from("posts")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (before) q = q.lt("created_at", before);
+  const { data, error } = await q;
+  if (error) { console.error(error); return []; }
+  return await hydratePosts(data || [], currentId);
+}
+
+// ─── DISCOVER: search & suggestions ──────────────────────────────────────────
+export async function searchUsers(query) {
+  const q = (query || "").trim();
+  if (q.length < 1) return [];
+  const like = `%${q}%`;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, display_name")
+    .or(`username.ilike.${like},display_name.ilike.${like}`)
+    .not("username", "is", null)
+    .limit(20);
+  if (error) { console.error(error); return []; }
+  return data || [];
+}
+
+// Suggested users: recent posters, excluding self + already-followed.
+export async function suggestedUsers(limit = 10) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data: follows } = await supabase
+    .from("follows").select("followee_id").eq("follower_id", user.id);
+  const excludeIds = new Set([user.id, ...((follows || []).map(f => f.followee_id))]);
+
+  // Grab the most recent post per user via a generous slice then dedupe.
+  // (For small/medium user bases this is fine; later we can move to a view.)
+  const { data: recentPosts, error } = await supabase
+    .from("posts")
+    .select("user_id, created_at")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  if (error) { console.error(error); return []; }
+
+  const seen = new Set();
+  const userIds = [];
+  for (const p of recentPosts || []) {
+    if (excludeIds.has(p.user_id) || seen.has(p.user_id)) continue;
+    seen.add(p.user_id);
+    userIds.push(p.user_id);
+    if (userIds.length >= limit) break;
+  }
+  if (!userIds.length) return [];
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, username, display_name")
+    .in("id", userIds)
+    .not("username", "is", null);
+  // Preserve recency order
+  const byId = new Map((profiles || []).map(p => [p.id, p]));
+  return userIds.map(id => byId.get(id)).filter(Boolean);
+}
+
+// ─── LIKES ───────────────────────────────────────────────────────────────────
+export async function togglePostLike(postId, currentlyLiked) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  if (currentlyLiked) {
+    const { error } = await supabase.from("post_likes")
+      .delete().eq("post_id", postId).eq("user_id", user.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("post_likes")
+      .insert({ post_id: postId, user_id: user.id });
+    if (error && error.code !== "23505") throw error;  // ignore duplicate
+  }
+}
+
+// ─── COMMENTS ────────────────────────────────────────────────────────────────
+export async function listPostComments(postId) {
+  const { data, error } = await supabase
+    .from("post_comments")
+    .select("id, post_id, user_id, body, created_at")
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true });
+  if (error) { console.error(error); return []; }
+  const comments = data || [];
+  if (!comments.length) return [];
+  const userIds = [...new Set(comments.map(c => c.user_id))];
+  const { data: profiles } = await supabase
+    .from("profiles").select("id, username, display_name").in("id", userIds);
+  const byId = new Map((profiles || []).map(p => [p.id, p]));
+  return comments.map(c => ({
+    ...c,
+    author: byId.get(c.user_id) || { id: c.user_id, username: null, display_name: null },
+  }));
+}
+
+export async function createComment(postId, body) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const trimmed = (body || "").trim();
+  if (!trimmed) throw new Error("Comment can't be empty");
+  if (trimmed.length > 1000) throw new Error("Comment is too long");
+  const { data, error } = await supabase
+    .from("post_comments")
+    .insert({ post_id: postId, user_id: user.id, body: trimmed })
+    .select().single();
+  if (error) throw error;
+  // Attach author shape for immediate UI use
+  const { data: prof } = await supabase
+    .from("profiles").select("id, username, display_name").eq("id", user.id).maybeSingle();
+  return { ...data, author: prof || { id: user.id, username: null, display_name: null } };
+}
+
+export async function deleteComment(commentId) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase.from("post_comments")
+    .delete().eq("id", commentId).eq("user_id", user.id);
+  if (error) throw error;
+}
+
+// ─── FOLLOWER / FOLLOWING LISTS ──────────────────────────────────────────────
+export async function listFollowers(userId) {
+  const { data: rows, error } = await supabase
+    .from("follows").select("follower_id").eq("followee_id", userId);
+  if (error) { console.error(error); return []; }
+  const ids = (rows || []).map(r => r.follower_id);
+  if (!ids.length) return [];
+  const { data: profiles } = await supabase
+    .from("profiles").select("id, username, display_name").in("id", ids);
+  return profiles || [];
+}
+
+export async function listFollowing(userId) {
+  const { data: rows, error } = await supabase
+    .from("follows").select("followee_id").eq("follower_id", userId);
+  if (error) { console.error(error); return []; }
+  const ids = (rows || []).map(r => r.followee_id);
+  if (!ids.length) return [];
+  const { data: profiles } = await supabase
+    .from("profiles").select("id, username, display_name").in("id", ids);
+  return profiles || [];
+}
+
+// ─── COPY POST TO LOG ────────────────────────────────────────────────────────
+// Returns a workout-shaped object (sans id) ready to be set as `current`
+// in App.jsx. Strips set values so the user logs their own numbers.
+export function workoutFromPostSnapshot(snapshot, { blankSets = true } = {}) {
+  const exercises = (snapshot.exercises || []).map(ex => ({
+    name: ex.name,
+    sets: (ex.sets || []).map(s => blankSets ? { reps: "", weight: "" } : { ...s }),
+  }));
+  return {
+    name: snapshot.name || "Workout",
+    tag: snapshot.tag || "",
+    exercises,
+  };
+}

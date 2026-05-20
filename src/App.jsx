@@ -3,6 +3,8 @@ import { supabase, isSupabaseConfigured } from "./supabase";
 import AuthScreen from "./AuthScreen";
 import UsernameGate from "./UsernameGate";
 import ProfileScreen from "./ProfileScreen";
+import SocialScreen from "./SocialScreen";
+import ComposePostModal from "./ComposePostModal";
 import * as DB from "./data";
 
 // ─── EXERCISE LIBRARY ────────────────────────────────────────────────────────
@@ -477,6 +479,8 @@ function AnvilApp({ session, onLogout }) {
   const [activeProgram, setActiveProgram] = useState(null);
   const [programLogs, setProgramLogs] = useState({});
   const [dataLoaded, setDataLoaded] = useState(false);
+  // When non-null, opens the ComposePostModal with this workout pre-loaded.
+  const [composePost, setComposePost] = useState(null);
   // Tracks whether the next save should fire — we don't want to overwrite cloud
   // data with an empty initial state before load completes.
   const initialLoadDone = useRef(false);
@@ -1085,6 +1089,9 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
       setWorkouts(w => [saved, ...w]);
     }
 
+    // After a fresh save (not an edit), offer to share to the social feed.
+    const shouldOfferShare = !editingId;
+
     // If this was logged against a program slot, link it (use the cloud-assigned ID)
     if (activeSlot) {
       const slotKey = `${activeSlot.weekIndex}-${activeSlot.dayIndex}`;
@@ -1098,6 +1105,10 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
     } else {
       setCurrent({ name:"", exercises:[], tag:null });
       setTab("history");
+    }
+
+    if (shouldOfferShare && confirm("Workout saved! Share it to your feed?")) {
+      setComposePost(saved);
     }
   }
 
@@ -1290,9 +1301,10 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
           </div>
         </div>
         <nav style={S.nav}>
-          {[["log","Log"],["program","Program"],["plans","Plans"],["coach","Coach"],["history","History"],["stats","Stats"]].map(([id,label])=>(
+          {[["log","Log"],["program","Program"],["plans","Plans"],["coach","Coach"],["social","Social"],["history","History"],["stats","Stats"]].map(([id,label])=>(
             <button key={id} style={S.navBtn(tab===id)} onClick={()=>setTab(id)}>
               {id==="coach" ? <span style={{color:tab==="coach"?"#ff6b35":"#888"}}>✨ {label}</span>
+                : id==="social" ? <span style={{color:tab==="social"?"#ff6b35":"#888"}}>👥 {label}</span>
                 : id==="program" && activeProgram ? <span style={{color:tab==="program"?"#ff6b35":"#888"}}>📅 {label}</span>
                 : label}
             </button>
@@ -2016,6 +2028,21 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
       )}
 
 
+      {tab==="social" && (
+        <div style={S.section}>
+          <SocialScreen
+            currentUserId={session.user.id}
+            onCopyToLog={(w) => {
+              // w is workout-shaped: { name, tag, exercises (with blank sets) }
+              setCurrent({ name: w.name, tag: w.tag, exercises: w.exercises });
+              setTab("log");
+            }}
+            onOpenProfile={(username) => { window.location.hash = `#/u/${username}`; }}
+          />
+        </div>
+      )}
+
+
       {tab==="history" && (
         <div style={S.section}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
@@ -2037,6 +2064,11 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                   <div><div style={{fontWeight:700,fontSize:16}}>{w.name}</div><div style={{color:"#555",fontSize:12,marginTop:2}}>{formatDate(w.date)}</div></div>
                   <div style={{display:"flex",gap:8,alignItems:"center"}}>
                     {w.tag&&<span style={S.tag(w.tag)}>{w.tag}</span>}
+                    <button
+                      style={{background:"none",border:"none",color:"#ff6b35",cursor:"pointer",fontSize:12,padding:"2px 8px",borderRadius:5,fontWeight:700,letterSpacing:1,textTransform:"uppercase",fontFamily:"inherit"}}
+                      onClick={()=>setComposePost(w)}
+                      title="Share this workout to your feed"
+                    >Share</button>
                     <button
                       style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:14,padding:"2px 6px",borderRadius:5,transition:"color 0.15s"}}
                       onMouseOver={e=>e.currentTarget.style.color="#ff6677"}
@@ -2245,6 +2277,19 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
             setAdoptModal(null);
           }}
           S={S}
+        />
+      )}
+      {composePost && (
+        <ComposePostModal
+          workout={composePost}
+          onClose={() => setComposePost(null)}
+          onPosted={({ imageWarning } = {}) => {
+            setComposePost(null);
+            if (imageWarning) {
+              alert("Your post was created, but the image couldn't be uploaded: " + imageWarning);
+            }
+            setTab("social");
+          }}
         />
       )}
     </div>

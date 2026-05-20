@@ -1,9 +1,10 @@
 // ProfileScreen — public profile page reached via hash route #/u/<username>.
-// Shows display name, follower/following counts, and a Follow/Unfollow button.
-// Bio + avatar will be added in a later phase.
+// Shows display name, follower/following counts (tappable), and a Follow/
+// Unfollow button. Bio + avatar will be added in a later phase.
 
 import { useState, useEffect } from "react";
 import * as DB from "./data";
+import FollowListModal from "./FollowListModal";
 
 export default function ProfileScreen({ username, currentUserId, onBack }) {
   const [loading, setLoading] = useState(true);
@@ -11,6 +12,7 @@ export default function ProfileScreen({ username, currentUserId, onBack }) {
   const [counts, setCounts] = useState({ followers: 0, following: 0 });
   const [following, setFollowing] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [showList, setShowList] = useState(null); // null | "followers" | "following"
 
   useEffect(() => {
     let cancelled = false;
@@ -94,15 +96,15 @@ export default function ProfileScreen({ username, currentUserId, onBack }) {
         </div>
 
         <div style={S.stats}>
-          <div style={S.stat}>
+          <button style={S.statBtn} onClick={() => setShowList("followers")}>
             <div style={S.statNum}>{counts.followers}</div>
             <div style={S.statLabel}>FOLLOWERS</div>
-          </div>
+          </button>
           <div style={S.statDivider} />
-          <div style={S.stat}>
+          <button style={S.statBtn} onClick={() => setShowList("following")}>
             <div style={S.statNum}>{counts.following}</div>
             <div style={S.statLabel}>FOLLOWING</div>
-          </div>
+          </button>
         </div>
 
         {!isMe && (
@@ -118,6 +120,14 @@ export default function ProfileScreen({ username, currentUserId, onBack }) {
           <div style={S.youBadge}>This is you</div>
         )}
       </div>
+      {showList && (
+        <FollowListModal
+          userId={profile.id}
+          mode={showList}
+          onClose={() => setShowList(null)}
+          onOpenProfile={(username) => { window.location.hash = `#/u/${username}`; }}
+        />
+      )}
     </div>
   );
 }
@@ -179,6 +189,11 @@ const S = {
     marginBottom: 16,
   },
   stat: { flex: 1, textAlign: "center" },
+  statBtn: {
+    flex: 1, textAlign: "center",
+    background: "transparent", border: "none", padding: "4px 8px",
+    color: "#f0ede8", fontFamily: "inherit", cursor: "pointer",
+  },
   statDivider: { width: 1, height: 32, background: "#1f1f2e" },
   statNum: { fontSize: 22, fontWeight: 800, color: "#ff6b35" },
   statLabel: { fontSize: 10, letterSpacing: 1.5, color: "#888", marginTop: 2 },
