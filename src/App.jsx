@@ -433,6 +433,176 @@ const TAG_COLORS = {
 
 const FREQ_LABELS = { 2:"2x / week", 3:"3x / week", 4:"4x / week", 5:"5x / week", 6:"6x / week", 7:"Daily" };
 
+// ─── CALENDAR HELPERS ────────────────────────────────────────────────────────
+// All dates in the active-program system are CALENDAR dates ("YYYY-MM-DD"),
+// not full timestamps. This keeps the schedule timezone-agnostic — if you
+// schedule a Saturday workout, it stays on Saturday regardless of when in
+// the day you started the program.
+
+const WEEKDAY_NAMES_FULL  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const WEEKDAY_NAMES_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+// Order shown to the user when picking days: Mon → Sun
+const WEEKDAY_PICKER_ORDER = [1,2,3,4,5,6,0];
+
+// Returns today's date in the user's local timezone as "YYYY-MM-DD".
+function todayISO() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// Parse "YYYY-MM-DD" into a Date at local midnight. Avoids the UTC drift
+// you get from `new Date("2026-05-20")` which is interpreted as UTC.
+function parseISODate(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
+
+// Inverse of parseISODate: turn a Date object into "YYYY-MM-DD" using local time.
+function toISODate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+// Add `n` days to an ISO date (n can be negative).
+function addDays(iso, n) {
+  const d = parseISODate(iso);
+  d.setDate(d.getDate() + n);
+  return toISODate(d);
+}
+
+// Number of full days from `a` to `b` (positive if b is later).
+function daysBetween(aISO, bISO) {
+  const a = parseISODate(aISO).getTime();
+  const b = parseISODate(bISO).getTime();
+  return Math.round((b - a) / 86400000);
+}
+
+// Format an ISO date for display. Uses locale's "Mon, May 20" style.
+function formatISODate(iso) {
+  const d = parseISODate(iso);
+  if (!d) return "";
+  return d.toLocaleDateString("en-US",{ weekday:"short", month:"short", day:"numeric" });
+}
+
+// Given a list of weekday numbers the user trains on (e.g. [6,0,1,2,3,4] for
+// Sat–Thu) and a program start date, return an array of ISO date strings —
+// one for each upcoming session, in chronological order — covering enough
+// sessions for `weeksAhead` weeks. The returned dates are >= startDate AND
+// fall on one of the chosen weekdays.
+//
+// Example: weekdays = [6,0,1,2,3,4], startDate = "2026-05-20" (a Wednesday)
+//   First session: the Wed (in weekdays? yes → 2026-05-20)
+//   Next: Thu (2026-05-21), then Sat (2026-05-23), Sun, Mon, Tue, Wed, Thu, ...
+function generateSessionDates(weekdays, startDate, weeksAhead = 2) {
+  if (!weekdays?.length || !startDate) return [];
+  const set = new Set(weekdays);
+  const sessionsPerWeek = weekdays.length;
+  const wanted = sessionsPerWeek * weeksAhead + sessionsPerWeek; // a buffer
+  const dates = [];
+  let cursor = startDate;
+  // Cap the loop so a bad input can't hang the UI.
+  for (let i = 0; i < 365 && dates.length < wanted; i++) {
+    const d = parseISODate(cursor);
+    if (set.has(d.getDay())) dates.push(cursor);
+    cursor = addDays(cursor, 1);
+  }
+  return dates;
+}
+
+// Returns the ISO date of the FIRST day of the program's calendar week
+// containing `referenceDate`. The "first day" is the weekday that follows
+// the longest contiguous block of REST days — i.e. the natural week-start
+// for this schedule. This matches user intuition:
+//   • Sat-Thu (off Fri)           → anchor = Sat (one rest day, week starts after)
+//   • Mon/Wed/Fri (off T,Th,S,Su) → anchor = Mon (longest gap is Sat+Sun)
+//   • Mon-Fri (off Sat+Sun)        → anchor = Mon
+//   • Tue-Sun (off Mon)            → anchor = Tue
+function findAnchorWeekday(weekdays) {
+  if (!weekdays?.length) return 0;
+  if (weekdays.length === 7) return 1; // 7-day: arbitrary; pick Monday
+  const set = new Set(weekdays);
+  // For each TRAINING day, measure the number of preceding contiguous REST
+  // days (looking backwards through the week, wrapping around).
+  let bestDay = weekdays[0];
+  let bestGap = -1;
+  for (const day of weekdays) {
+    let gap = 0;
+    for (let i = 1; i <= 7; i++) {
+      const prev = (day - i + 7) % 7;
+      if (set.has(prev)) break;
+      gap++;
+    }
+    if (gap > bestGap) { bestGap = gap; bestDay = day; }
+  }
+  return bestDay;
+}
+
+// Returns the ISO date of the first calendar day of the program's week
+// containing `referenceDate`. Anchored to findAnchorWeekday.
+function weekAnchorFor(weekdays, referenceDate) {
+  if (!weekdays?.length || !referenceDate) return referenceDate;
+  const anchor = findAnchorWeekday(weekdays);
+  const ref = parseISODate(referenceDate);
+  const refDow = ref.getDay();
+  const back = (refDow - anchor + 7) % 7;
+  return addDays(referenceDate, -back);
+}
+
+// Compute the list of session ISO dates for ONE viewed week.
+// Weeks are CALENDAR weeks anchored to the user's earliest chosen weekday.
+// Week 0 = the calendar week containing startDate.
+// Week N = the week starting 7*N days after Week 0's anchor.
+//
+// All session dates within a week are returned (even dates before startDate
+// in Week 0 — those will be rendered as "missed" by the UI).
+function sessionDatesForWeek(weekdays, startDate, weekIndex) {
+  if (!weekdays?.length || !startDate) return [];
+  const set = new Set(weekdays);
+  const week0Anchor = weekAnchorFor(weekdays, startDate);
+  const windowStart = addDays(week0Anchor, weekIndex * 7);
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const cursor = addDays(windowStart, i);
+    const d = parseISODate(cursor);
+    if (set.has(d.getDay())) dates.push(cursor);
+  }
+  return dates;
+}
+
+// Given a program's start date and weekday list, figure out which "pattern
+// index" (i.e. which entry from activeProgram.days) corresponds to a given
+// session date. Patterns cycle in stable order from the WEEK-0 ANCHOR (the
+// earliest chosen weekday in the calendar week containing startDate), NOT
+// from startDate itself. This keeps the schedule consistent even when the
+// user starts mid-week: a Saturday session is always pattern 0 (or whatever
+// the first slot is), regardless of which weekday the user adopted on.
+function patternIndexForDate(weekdays, startDate, daysLen, targetDate) {
+  if (!weekdays?.length || !startDate || !daysLen) return 0;
+  const set = new Set(weekdays);
+  const anchor = weekAnchorFor(weekdays, startDate);
+  // If targetDate is before the anchor (shouldn't normally happen but is safe),
+  // walk backwards by counting sessions in the opposite direction.
+  if (targetDate < anchor) return 0;
+  let count = 0;
+  let cursor = anchor;
+  for (let i = 0; i < 365; i++) {
+    const d = parseISODate(cursor);
+    if (set.has(d.getDay())) {
+      if (cursor === targetDate) return count % daysLen;
+      count++;
+    }
+    cursor = addDays(cursor, 1);
+  }
+  return 0;
+}
+
 function formatDate(d) {
   return new Date(d).toLocaleDateString("en-US",{ month:"short", day:"numeric" });
 }
@@ -510,7 +680,13 @@ function AnvilApp({ session, onLogout }) {
         localStorage.removeItem("wt_activeSlot");
         return null;
       }
-      return JSON.parse(localStorage.getItem("wt_activeSlot")||"null");
+      const parsed = JSON.parse(localStorage.getItem("wt_activeSlot")||"null");
+      // Reject legacy shape ({weekIndex, dayIndex}) — only accept {sessionDate}.
+      if (parsed && typeof parsed === "object" && typeof parsed.sessionDate === "string") {
+        return parsed;
+      }
+      localStorage.removeItem("wt_activeSlot");
+      return null;
     } catch { return null; }
   });
   const [addEx, setAddEx] = useState({ open:false, category:"All", search:"" });
@@ -537,8 +713,20 @@ function AnvilApp({ session, onLogout }) {
         if (cancelled) return;
         setProfile(p);
         setWorkouts(ws);
-        setActiveProgram(ap.program);
-        setProgramLogs(ap.logs);
+        // Reset legacy programs that pre-date the calendar refactor.
+        // The new schema requires `weekdays` (array of JS day numbers) and
+        // a date-keyed `programLogs`. Anything else is from the old slot-
+        // keyed model and can't be safely migrated, so we drop it.
+        const isLegacy = ap.program && !Array.isArray(ap.program.weekdays);
+        if (isLegacy) {
+          setActiveProgram(null);
+          setProgramLogs({});
+          // Persist the reset so it doesn't show up on next load either.
+          try { await DB.saveActiveProgram(null, {}); } catch {}
+        } else {
+          setActiveProgram(ap.program);
+          setProgramLogs(ap.logs);
+        }
         setDataLoaded(true);
         initialLoadDone.current = true;
 
@@ -909,10 +1097,15 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
   }
 
   // ─── ACTIVE PROGRAM FUNCTIONS ────────────────────────────────────────────────
-  // Adopt a split as the active program at a given frequency.
-  // mode: "repeat" — same exercises every cycle (default)
-  //       "rotate" — cycle through A/B/C variations per pattern
-  function adoptSplitAsProgram(splitName, frequency, mode = "repeat") {
+  // Adopt a split as the active program.
+  //   frequency: how many sessions per week
+  //   mode:      "repeat" (variation A every cycle) | "rotate" (cycle A/B/C…)
+  //   weekdays:  array of JS day numbers (0=Sun..6=Sat) the user trains on;
+  //              must have exactly `frequency` entries.
+  //   startDate: ISO date "YYYY-MM-DD" the program begins on. The user's
+  //              first session is the first weekday on/after this date that's
+  //              in `weekdays`.
+  function adoptSplitAsProgram(splitName, frequency, mode = "repeat", weekdays, startDate) {
     const split = SPLITS[splitName];
     const days = buildWeekSchedule(split.patterns, frequency, mode);
     setActiveProgram({
@@ -921,8 +1114,9 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
       frequency,
       mode,
       color: split.color,
-      days: days.map(d => ({ name: d.displayName, tag: d.tag, exercises: d.exercises, scheduledDay: d.scheduledDay })),
-      startDate: new Date().toISOString(),
+      days: days.map(d => ({ name: d.displayName, tag: d.tag, exercises: d.exercises })),
+      weekdays: [...weekdays].sort((a,b)=>a-b),  // store ascending for stable display
+      startDate: startDate || todayISO(),
     });
     setProgramLogs({});
     setViewedWeek(null);
@@ -930,19 +1124,26 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
   }
 
   // Adopt the AI-generated plan as the active program.
-  function adoptAIPlanAsProgram() {
+  // Same weekday/startDate concept as adoptSplitAsProgram.
+  function adoptAIPlanAsProgram(weekdays, startDate) {
     if (!aiState?.plan) return;
+    const planDays = aiState.plan.days;
+    // If caller didn't supply weekdays, fall back to a sensible default:
+    // first N weekdays starting Monday. (Should always be supplied via modal.)
+    const wd = weekdays && weekdays.length === planDays.length
+      ? [...weekdays].sort((a,b)=>a-b)
+      : WEEKDAY_PICKER_ORDER.slice(0, planDays.length).sort((a,b)=>a-b);
     setActiveProgram({
       source: "ai",
       planName: aiState.plan.name,
       color: "#ff6b35",
-      days: aiState.plan.days.map((d, i) => ({
+      days: planDays.map(d => ({
         name: d.name,
         tag: d.tag,
         exercises: d.exercises,
-        scheduledDay: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"][i] || `Day ${i+1}`,
       })),
-      startDate: new Date().toISOString(),
+      weekdays: wd,
+      startDate: startDate || todayISO(),
     });
     setProgramLogs({});
     setViewedWeek(null);
@@ -955,21 +1156,32 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
     setViewedWeek(null);
   }
 
-  // Compute the current week index based on startDate.
+  // Compute the current week index based on startDate. Weeks are CALENDAR-
+  // aligned: anchored to the user's earliest chosen weekday in the week
+  // containing startDate. So if you start a Sat-Thu program on a Wednesday,
+  // Week 0's anchor is the prior Saturday; Week 1 starts the following Saturday.
   function getCurrentWeekIndex() {
-    if (!activeProgram?.startDate) return 0;
-    const days = Math.floor((Date.now() - new Date(activeProgram.startDate).getTime()) / 86400000);
-    return Math.max(0, Math.floor(days / 7));
+    if (!activeProgram?.startDate || !activeProgram?.weekdays) return 0;
+    const anchor = weekAnchorFor(activeProgram.weekdays, activeProgram.startDate);
+    const diff = daysBetween(anchor, todayISO());
+    return Math.max(0, Math.floor(diff / 7));
   }
 
-  // Start logging a specific scheduled day (loads exercises into Log tab).
-  function startScheduledDay(weekIndex, dayIndex) {
-    const day = activeProgram.days[dayIndex];
-    const slotKey = `${weekIndex}-${dayIndex}`;
-    const existingLog = programLogs[slotKey];
+  // Start logging a specific scheduled day. `sessionDate` is the ISO calendar
+  // date this session falls on; that date is the key for completion tracking.
+  function startScheduledDay(sessionDate) {
+    if (!activeProgram) return;
+    const patternIdx = patternIndexForDate(
+      activeProgram.weekdays,
+      activeProgram.startDate,
+      activeProgram.days.length,
+      sessionDate
+    );
+    const day = activeProgram.days[patternIdx];
+    const existingLog = programLogs[sessionDate];
 
     // If already completed, load that exact workout for editing
-    if (existingLog) {
+    if (existingLog?.workoutId) {
       const workout = workouts.find(w => w.id === existingLog.workoutId);
       if (workout) {
         const exercises = workout.exercises.map(e => {
@@ -981,7 +1193,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
           };
         });
         setCurrent({ name: workout.name, tag: workout.tag, exercises, editingId: workout.id });
-        setActiveSlot({ weekIndex, dayIndex });
+        setActiveSlot({ sessionDate });
         setTab("log");
         return;
       }
@@ -990,7 +1202,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
     // Otherwise start fresh from the program template
     const exercises = day.exercises.map(buildExerciseEntry);
     setCurrent({ name: day.name, tag: day.tag, exercises });
-    setActiveSlot({ weekIndex, dayIndex });
+    setActiveSlot({ sessionDate });
     setTab("log");
   }
 
@@ -1034,10 +1246,10 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
     return sessions;
   }
 
-  // Manually toggle a day's completion status without logging a full workout.
-  async function toggleSlotComplete(weekIndex, dayIndex) {
-    const slotKey = `${weekIndex}-${dayIndex}`;
-    const existing = programLogs[slotKey];
+  // Manually toggle a session's completion status without logging a full
+  // workout. `sessionDate` is the ISO calendar date of the session.
+  async function toggleSlotComplete(sessionDate) {
+    const existing = programLogs[sessionDate];
     if (existing) {
       // If linked to a real workout, also delete that workout from the cloud
       if (existing.workoutId) {
@@ -1048,13 +1260,13 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
       }
       setProgramLogs(prev => {
         const next = { ...prev };
-        delete next[slotKey];
+        delete next[sessionDate];
         return next;
       });
     } else {
       setProgramLogs(prev => ({
         ...prev,
-        [slotKey]: { workoutId: null, completedAt: new Date().toISOString(), manual: true },
+        [sessionDate]: { workoutId: null, completedAt: new Date().toISOString(), manual: true },
       }));
     }
   }
@@ -1094,10 +1306,10 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
 
     // If this was logged against a program slot, link it (use the cloud-assigned ID)
     if (activeSlot) {
-      const slotKey = `${activeSlot.weekIndex}-${activeSlot.dayIndex}`;
+      const key = activeSlot.sessionDate;
       setProgramLogs(prev => ({
         ...prev,
-        [slotKey]: { workoutId: saved.id, completedAt: new Date().toISOString(), manual: false },
+        [key]: { workoutId: saved.id, completedAt: new Date().toISOString(), manual: false },
       }));
       setCurrent({ name:"", exercises:[], tag:null });
       setActiveSlot(null);
@@ -1267,7 +1479,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
           }}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
               <div>
-                <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:3}}>{day.scheduledDay}</div>
+                <div style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:1,textTransform:"uppercase",marginBottom:3}}>Day {i+1}</div>
                 <div style={{fontWeight:700,fontSize:15}}>{day.displayName}</div>
               </div>
               <span style={S.tag(day.tag)}>{day.tag}</span>
@@ -1355,7 +1567,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                 }}>
                   <div style={{fontSize:12,lineHeight:1.5}}>
                     <div style={{color:"#55efc4",fontWeight:700,letterSpacing:1,textTransform:"uppercase",fontSize:10,marginBottom:2}}>
-                      📅 Program · Week {activeSlot.weekIndex+1}
+                      📅 Program · {formatISODate(activeSlot.sessionDate)}
                     </div>
                     <div style={{color:"#aaa"}}>
                       {current.editingId ? "Editing logged workout" : "Logging into your program schedule"}
@@ -1621,7 +1833,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
       {/* ── PROGRAM ─────────────────────────────────────────────────────────── */}
       {tab==="program" && (
         <div style={S.section}>
-          {!activeProgram ? (
+          {!activeProgram || !Array.isArray(activeProgram.weekdays) || !parseISODate(activeProgram.startDate) ? (
             // No active program
             <div style={{textAlign:"center",padding:"40px 20px"}}>
               <div style={{fontSize:42,marginBottom:14}}>📅</div>
@@ -1639,10 +1851,19 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
             const week = viewedWeek === null ? currentWeek : viewedWeek;
             const isCurrentWeek = week === currentWeek;
             const isPastWeek = week < currentWeek;
-            const completedThisWeek = activeProgram.days.filter((_, i) => programLogs[`${week}-${i}`]).length;
-            const startDateObj = new Date(activeProgram.startDate);
-            const weekStartDate = new Date(startDateObj.getTime() + week * 7 * 86400000);
-            const weekEndDate = new Date(weekStartDate.getTime() + 6 * 86400000);
+            // Calendar dates for the sessions in this viewed week.
+            const sessionDates = sessionDatesForWeek(
+              activeProgram.weekdays,
+              activeProgram.startDate,
+              week
+            );
+            const completedThisWeek = sessionDates.filter(d => programLogs[d]).length;
+            const week0Anchor = weekAnchorFor(activeProgram.weekdays, activeProgram.startDate);
+            const weekStartISO = addDays(week0Anchor, week * 7);
+            const weekEndISO   = addDays(week0Anchor, week * 7 + 6);
+            const weekStartDate = parseISODate(weekStartISO);
+            const weekEndDate   = parseISODate(weekEndISO);
+            const today = todayISO();
 
             return (
               <>
@@ -1683,8 +1904,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                     </div>
                   </div>
                   <button
-                    style={{background:"none",border:"none",color:week<currentWeek?"#ff6b35":"#333",cursor:week<currentWeek?"pointer":"not-allowed",fontSize:18,padding:"4px 10px"}}
-                    disabled={week>=currentWeek}
+                    style={{background:"none",border:"none",color:"#ff6b35",cursor:"pointer",fontSize:18,padding:"4px 10px"}}
                     onClick={()=>setViewedWeek(week+1)}
                   >▶</button>
                 </div>
@@ -1696,13 +1916,13 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                       Progress
                     </span>
                     <span style={{fontSize:11,fontWeight:700,color:"#ff6b35"}}>
-                      {completedThisWeek}/{activeProgram.days.length}
+                      {completedThisWeek}/{sessionDates.length}
                     </span>
                   </div>
                   <div style={{height:6,background:"#1a1a28",borderRadius:3,overflow:"hidden"}}>
                     <div style={{
                       height:"100%",
-                      width:`${(completedThisWeek/activeProgram.days.length)*100}%`,
+                      width:`${sessionDates.length ? (completedThisWeek/sessionDates.length)*100 : 0}%`,
                       background:`linear-gradient(90deg,${activeProgram.color||"#ff6b35"},#ff8c42)`,
                       borderRadius:3,
                       transition:"width 0.3s",
@@ -1711,28 +1931,53 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                 </div>
 
                 {/* Scheduled days */}
-                {activeProgram.days.map((day, i) => {
-                  const slotKey = `${week}-${i}`;
-                  const log = programLogs[slotKey];
+                {sessionDates.map((sessionDate) => {
+                  // Pattern index for this date — which entry of activeProgram.days?
+                  const patternIdx = patternIndexForDate(
+                    activeProgram.weekdays,
+                    activeProgram.startDate,
+                    activeProgram.days.length,
+                    sessionDate
+                  );
+                  const day = activeProgram.days[patternIdx];
+                  const log = programLogs[sessionDate];
                   const isDone = !!log;
                   const linkedWorkout = log?.workoutId ? workouts.find(w => w.id === log.workoutId) : null;
+                  // A session is "missed" if its date is in the past AND it
+                  // wasn't completed. We don't auto-mark anything in storage —
+                  // missed status is derived from the calendar at render time.
+                  const isMissed = !isDone && sessionDate < today;
+                  const isToday  = sessionDate === today;
                   return (
-                    <div key={i} style={{
-                      background: isDone ? "#0e1812" : "#111118",
-                      border: `1px solid ${isDone ? "#55efc433" : (TAG_COLORS[day.tag]||"#1e1e2e")+"22"}`,
-                      borderLeft: `3px solid ${isDone ? "#55efc4" : (TAG_COLORS[day.tag]||activeProgram.color||"#ff6b35")}`,
+                    <div key={sessionDate} style={{
+                      background: isDone ? "#0e1812" : (isMissed ? "#150f10" : "#111118"),
+                      border: `1px solid ${
+                        isDone ? "#55efc433"
+                        : isMissed ? "#5a2a2a44"
+                        : isToday  ? (TAG_COLORS[day.tag]||"#ff6b35")+"66"
+                        : (TAG_COLORS[day.tag]||"#1e1e2e")+"22"
+                      }`,
+                      borderLeft: `3px solid ${
+                        isDone ? "#55efc4"
+                        : isMissed ? "#7a4646"
+                        : (TAG_COLORS[day.tag]||activeProgram.color||"#ff6b35")
+                      }`,
                       borderRadius:12,
                       padding:"13px 16px",
                       marginBottom:10,
-                      opacity: isDone ? 0.92 : 1,
+                      opacity: isMissed && !isDone ? 0.7 : (isDone ? 0.92 : 1),
                     }}>
                       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
                         <div style={{flex:1}}>
-                          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
-                            <span style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>{day.scheduledDay || `Day ${i+1}`}</span>
+                          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3,flexWrap:"wrap"}}>
+                            <span style={{fontSize:10,color:"#666",fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>
+                              {formatISODate(sessionDate)}
+                            </span>
+                            {isToday && !isDone && <span style={{fontSize:10,color:"#ff6b35",fontWeight:700,letterSpacing:1}}>· TODAY</span>}
                             {isDone && <span style={{fontSize:10,color:"#55efc4",fontWeight:700,letterSpacing:1}}>✓ COMPLETE</span>}
+                            {isMissed && <span style={{fontSize:10,color:"#a85a5a",fontWeight:700,letterSpacing:1}}>· MISSED</span>}
                           </div>
-                          <div style={{fontWeight:700,fontSize:15,color:isDone?"#aaa":"#f0ede8",textDecoration:isDone?"line-through":"none",textDecorationColor:"#55efc466"}}>
+                          <div style={{fontWeight:700,fontSize:15,color:isDone?"#aaa":(isMissed?"#777":"#f0ede8"),textDecoration:isDone?"line-through":"none",textDecorationColor:"#55efc466"}}>
                             {day.name}
                           </div>
                         </div>
@@ -1768,9 +2013,9 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                             textTransform:"uppercase",
                             cursor:"pointer",
                           }}
-                          onClick={()=>startScheduledDay(week, i)}
+                          onClick={()=>startScheduledDay(sessionDate)}
                         >
-                          {isDone ? "✎ Edit" : "Start →"}
+                          {isDone ? "✎ Edit" : (isMissed ? "Log anyway" : "Start →")}
                         </button>
                         <button
                           style={{
@@ -1786,7 +2031,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                             textTransform:"uppercase",
                             cursor:"pointer",
                           }}
-                          onClick={()=>toggleSlotComplete(week, i)}
+                          onClick={()=>toggleSlotComplete(sessionDate)}
                         >
                           {isDone ? "↺ Undo" : "✓ Mark Done"}
                         </button>
@@ -1796,7 +2041,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                 })}
 
                 {/* Week complete message */}
-                {completedThisWeek === activeProgram.days.length && (
+                {sessionDates.length > 0 && completedThisWeek === sessionDates.length && (
                   <div style={{
                     background:"linear-gradient(90deg,#55efc418,transparent)",
                     border:"1px solid #55efc444",
@@ -1809,7 +2054,7 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                       🎉 Week Complete!
                     </div>
                     <div style={{color:"#aaa",fontSize:12,lineHeight:1.6}}>
-                      Great work hitting all {activeProgram.days.length} sessions. {isCurrentWeek ? "Next week starts automatically." : "Browse to other weeks with ◀ ▶ above."}
+                      Great work hitting all {sessionDates.length} sessions. {isCurrentWeek ? "Next week starts automatically." : "Browse to other weeks with ◀ ▶ above."}
                     </div>
                   </div>
                 )}
@@ -1904,7 +2149,21 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
                   marginBottom:18,
                   boxShadow:"0 4px 20px #ff6b3544",
                 }}
-                onClick={adoptAIPlanAsProgram}
+                onClick={()=>setAdoptModal({
+                  kind: "ai",
+                  frequency: aiState.plan.days.length,
+                  splitColor: "#ff6b35",
+                  // Make a faux splitPatterns array so AdoptModal can render
+                  // a preview without branching: each AI day becomes a "pattern"
+                  // with one variation (variation A = its exercise list).
+                  splitPatterns: aiState.plan.days.map(d => ({
+                    name: d.name,
+                    tag: d.tag,
+                    variations: [d.exercises],
+                  })),
+                  splitName: aiState.plan.name,
+                  isAI: true,
+                })}
               >
                 📅 Start This Program ({aiState.plan.days.length}x/wk)
               </button>
@@ -2272,8 +2531,12 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
         <AdoptModal
           modal={adoptModal}
           onClose={()=>setAdoptModal(null)}
-          onConfirm={(mode)=>{
-            adoptSplitAsProgram(adoptModal.splitName, adoptModal.frequency, mode);
+          onConfirm={({ mode, weekdays, startDate })=>{
+            if (adoptModal.kind === "ai") {
+              adoptAIPlanAsProgram(weekdays, startDate);
+            } else {
+              adoptSplitAsProgram(adoptModal.splitName, adoptModal.frequency, mode, weekdays, startDate);
+            }
             setAdoptModal(null);
           }}
           S={S}
@@ -2299,13 +2562,51 @@ Use 5-7 exercises per day. Address stalled lifts with variations. Be specific an
 // ─── ADOPT PROGRAM MODAL ─────────────────────────────────────────────────────
 function AdoptModal({ modal, onClose, onConfirm, S }) {
   const [mode, setMode] = useState("repeat");
-  const { splitName, frequency, splitColor, splitPatterns } = modal;
+  const { splitName, frequency, splitColor, splitPatterns, isAI } = modal;
 
   // Check if any pattern has more than 1 variation — if not, rotate is meaningless
-  const hasVariations = splitPatterns.some(p => p.variations.length > 1);
+  const hasVariations = !isAI && splitPatterns.some(p => p.variations.length > 1);
+
+  // Default weekdays: spread the frequency across the week starting Monday,
+  // skipping Sunday when possible. The user can change this.
+  const defaultWeekdays = (() => {
+    // Pick `frequency` weekdays from WEEKDAY_PICKER_ORDER (Mon..Sun)
+    return WEEKDAY_PICKER_ORDER.slice(0, frequency).sort((a,b)=>a-b);
+  })();
+  const [weekdays, setWeekdays] = useState(defaultWeekdays);
+  const [startDate, setStartDate] = useState(todayISO());
+
+  const dayCountOk = weekdays.length === frequency;
+  const startDateValid = !!parseISODate(startDate);
+  const canConfirm = dayCountOk && startDateValid;
 
   // Preview the resulting week
-  const preview = buildWeekSchedule(splitPatterns, frequency, mode);
+  const preview = isAI
+    ? splitPatterns.map((p, i) => ({
+        name: p.name,
+        tag: p.tag,
+        exercises: p.variations[0],
+        displayName: p.name,
+      }))
+    : buildWeekSchedule(splitPatterns, frequency, mode);
+
+  // Preview Week 0: the calendar week containing startDate. Days before
+  // startDate within that week will be auto-marked MISSED in the live app,
+  // so we surface that visually here too.
+  const previewDates = dayCountOk
+    ? sessionDatesForWeek(weekdays, startDate, 0)
+    : [];
+
+  function toggleWeekday(d) {
+    setWeekdays(prev => {
+      if (prev.includes(d)) {
+        return prev.filter(x => x !== d);
+      }
+      // Don't allow more than `frequency` selected
+      if (prev.length >= frequency) return prev;
+      return [...prev, d].sort((a,b)=>a-b);
+    });
+  }
 
   return (
     <div style={{position:"fixed",inset:0,background:"#000d",zIndex:300,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
@@ -2316,7 +2617,7 @@ function AdoptModal({ modal, onClose, onConfirm, S }) {
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
           <div>
             <div style={{color:splitColor,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",fontSize:10,marginBottom:4}}>
-              Start Program
+              {isAI ? "Start AI Program" : "Start Program"}
             </div>
             <div style={{fontWeight:800,fontSize:20,lineHeight:1.2}}>{splitName}</div>
             <div style={{color:"#666",fontSize:12,marginTop:3}}>{frequency===7?"Daily":`${frequency}x per week`}</div>
@@ -2346,38 +2647,131 @@ function AdoptModal({ modal, onClose, onConfirm, S }) {
           </>
         )}
 
-        {/* Preview */}
-        <div style={{...S.label,marginBottom:10}}>Preview · Week 1</div>
+        {/* ── WEEKDAY PICKER ──────────────────────────────────────────────── */}
+        <div style={{...S.label,marginTop:hasVariations?0:24,marginBottom:10}}>
+          Which days do you lift? <span style={{color:dayCountOk?"#55efc4":"#ff6b35",fontWeight:800}}>({weekdays.length}/{frequency})</span>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6,marginBottom:6}}>
+          {WEEKDAY_PICKER_ORDER.map(d => {
+            const selected = weekdays.includes(d);
+            const atCap = weekdays.length >= frequency && !selected;
+            return (
+              <button
+                key={d}
+                onClick={()=>toggleWeekday(d)}
+                disabled={atCap}
+                style={{
+                  padding:"10px 0",
+                  border: selected ? `1.5px solid ${splitColor}` : "1px solid #2a2a3e",
+                  borderRadius:8,
+                  background: selected ? `${splitColor}22` : (atCap ? "#0a0a14" : "#1a1a28"),
+                  color: selected ? splitColor : (atCap ? "#333" : "#888"),
+                  fontFamily:"inherit",
+                  fontSize:11,
+                  fontWeight:800,
+                  letterSpacing:1,
+                  textTransform:"uppercase",
+                  cursor: atCap ? "not-allowed" : "pointer",
+                  transition:"all 0.15s",
+                }}
+              >
+                {WEEKDAY_NAMES_SHORT[d]}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{fontSize:11,color:"#555",marginBottom:18,lineHeight:1.5}}>
+          {dayCountOk
+            ? `Patterns will cycle through these days in order each week.`
+            : `Pick ${frequency - weekdays.length} more day${frequency-weekdays.length===1?"":"s"} to continue.`}
+        </div>
+
+        {/* ── START DATE ───────────────────────────────────────────────────── */}
+        <div style={{...S.label,marginBottom:10}}>Start date</div>
+        <input
+          type="date"
+          value={startDate}
+          min={todayISO()}
+          onChange={e => setStartDate(e.target.value)}
+          style={{
+            width:"100%",
+            background:"#1a1a28",
+            border:"1px solid #2a2a3e",
+            borderRadius:8,
+            padding:"10px 14px",
+            color:"#f0ede8",
+            fontFamily:"inherit",
+            fontSize:14,
+            outline:"none",
+            boxSizing:"border-box",
+            colorScheme:"dark",
+            marginBottom:6,
+          }}
+        />
+        <div style={{fontSize:11,color:"#555",marginBottom:18,lineHeight:1.5}}>
+          Defaults to today. Your first session is the first chosen weekday on or after this date.
+        </div>
+
+        {/* ── PREVIEW ─────────────────────────────────────────────────────── */}
+        <div style={{...S.label,marginBottom:10}}>Preview · First Week</div>
         <div style={{background:"#0e0e18",border:"1px solid #1e1e2e",borderRadius:10,padding:12,marginBottom:18}}>
-          {preview.map((day, i) => (
-            <div key={i} style={{
-              padding:"6px 0",borderBottom: i<preview.length-1 ? "1px solid #1a1a28" : "none",
-            }}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  <span style={{fontSize:10,color:"#444",fontWeight:700,letterSpacing:1,minWidth:36}}>{day.scheduledDay.slice(0,3).toUpperCase()}</span>
-                  <span style={{fontSize:13,color:"#ddd",fontWeight:600}}>{day.displayName}</span>
-                </div>
-                <span style={{fontSize:10,color:TAG_COLORS[day.tag]||"#666",fontWeight:700,letterSpacing:1,textTransform:"uppercase"}}>{day.tag}</span>
-              </div>
-              {mode === "rotate" && (
-                <div style={{fontSize:10,color:"#444",marginTop:3,marginLeft:44,lineHeight:1.4}}>
-                  {day.exercises.slice(0,3).join(" · ")}{day.exercises.length>3?` · +${day.exercises.length-3}`:""}
-                </div>
-              )}
+          {!dayCountOk ? (
+            <div style={{color:"#666",fontSize:12,padding:"8px 4px"}}>
+              Pick {frequency} day{frequency===1?"":"s"} above to see your schedule.
             </div>
-          ))}
+          ) : previewDates.length === 0 ? (
+            <div style={{color:"#666",fontSize:12,padding:"8px 4px"}}>
+              No sessions found. Check the start date and weekday selection.
+            </div>
+          ) : (
+            previewDates.map((iso, i) => {
+              // In the live app, patterns count from the week-0 anchor, so the
+              // preview here should match that ordering exactly: index `i` in
+              // sessionDatesForWeek(...,0) corresponds to pattern i % patterns.
+              const day = preview[i % preview.length];
+              const isPreMissed = iso < startDate;
+              return (
+                <div key={iso} style={{
+                  padding:"6px 0",borderBottom: i<previewDates.length-1 ? "1px solid #1a1a28" : "none",
+                  opacity: isPreMissed ? 0.55 : 1,
+                }}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,flex:1,minWidth:0}}>
+                      <span style={{fontSize:10,color:"#666",fontWeight:700,letterSpacing:1,minWidth:64,flexShrink:0}}>
+                        {formatISODate(iso)}
+                      </span>
+                      <span style={{fontSize:13,color:isPreMissed?"#777":"#ddd",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                        {day.displayName || day.name}
+                      </span>
+                      {isPreMissed && (
+                        <span style={{fontSize:9,color:"#a85a5a",fontWeight:700,letterSpacing:1,flexShrink:0}}>· MISSED</span>
+                      )}
+                    </div>
+                    <span style={{fontSize:10,color:TAG_COLORS[day.tag]||"#666",fontWeight:700,letterSpacing:1,textTransform:"uppercase",flexShrink:0,marginLeft:6}}>{day.tag}</span>
+                  </div>
+                  {!isAI && mode === "rotate" && !isPreMissed && (
+                    <div style={{fontSize:10,color:"#444",marginTop:3,marginLeft:72,lineHeight:1.4}}>
+                      {day.exercises.slice(0,3).join(" · ")}{day.exercises.length>3?` · +${day.exercises.length-3}`:""}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
 
         <button
+          disabled={!canConfirm}
           style={{
             width:"100%",
-            background:`linear-gradient(90deg,${splitColor},${splitColor}cc)`,
-            border:"none",borderRadius:10,padding:"13px",color:"#0a0a0f",
+            background: canConfirm ? `linear-gradient(90deg,${splitColor},${splitColor}cc)` : "#1a1a28",
+            border:"none",borderRadius:10,padding:"13px",
+            color: canConfirm ? "#0a0a0f" : "#444",
             fontFamily:"inherit",fontSize:13,fontWeight:800,letterSpacing:2,textTransform:"uppercase",
-            cursor:"pointer",boxShadow:`0 4px 20px ${splitColor}33`,
+            cursor: canConfirm ? "pointer" : "not-allowed",
+            boxShadow: canConfirm ? `0 4px 20px ${splitColor}33` : "none",
           }}
-          onClick={()=>onConfirm(mode)}
+          onClick={()=>canConfirm && onConfirm({ mode, weekdays, startDate })}
         >
           📅 Confirm & Start
         </button>
